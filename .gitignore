@@ -1,0 +1,14 @@
+/bin/
+/out/
+/web-test-results/
+*.exe
+*.test
+*.prof
+/coverage.out
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
