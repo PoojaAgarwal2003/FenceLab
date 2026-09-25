@@ -21,7 +21,7 @@ func main() {
 
 func run(ctx context.Context, args []string, out, errOut io.Writer) int {
 	if len(args) == 0 || args[0] == "-help" || args[0] == "help" {
-		_, err := fmt.Fprintln(out, "FenceLab: deterministic lease, fencing, and idempotency laboratory\n\nCommands:\n  run      Replay one scenario and policy as JSON\n  compare  Replay the same schedule under three policies\n  check    Explore bounded seeded schedules and check expected outcomes\n\nUse COMMAND -help for flags. All times are virtual milliseconds.")
+		_, err := fmt.Fprintln(out, "FenceLab: deterministic lease, fencing, and idempotency laboratory\n\nCommands:\n  serve    Open the local interactive failure laboratory\n  run      Replay one scenario and policy as JSON\n  compare  Replay the same schedule under three policies\n  check    Explore bounded seeded schedules and check expected outcomes\n\nUse COMMAND -help for flags. All times are virtual milliseconds.")
 		if err != nil {
 			fmt.Fprintln(errOut, err)
 			return 1
@@ -29,6 +29,9 @@ func run(ctx context.Context, args []string, out, errOut io.Writer) int {
 		return 0
 	}
 	command := args[0]
+	if command == "serve" {
+		return serve(ctx, args[1:], errOut)
+	}
 	if command != "run" && command != "compare" && command != "check" {
 		fmt.Fprintf(errOut, "unknown command %q; use -help\n", command)
 		return 2

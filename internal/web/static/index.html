@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="A deterministic failure laboratory for leases, fencing tokens, and idempotent effects.">
+  <title>FenceLab | The ownership experiment</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">F/</span> FenceLab<span class="version">LAB 01</span></a>
+    <span class="local-indicator"><span aria-hidden="true"></span> LOCAL / DETERMINISTIC</span>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">DISTRIBUTED SYSTEMS, UNDER A MICROSCOPE</p><h1>A lease expires.<br><span>A worker doesn't.</span></h1><p class="lead">Replay the moment ownership changes. Discover why leases, fencing,<br class="desktop-break"> and idempotency solve three different problems.</p></div>
+      <div class="intro-note"><span class="note-number">THE OWNERSHIP EXPERIMENT</span><strong>Same fault. Three policies.</strong><p>One job. Two workers. Every write explained.<br>No cloud. No real side effects.</p></div>
+    </section>
+    <div class="workspace">
+      <aside class="panel controls">
+        <div class="section-heading"><span class="eyebrow">EXPERIMENT SETUP</span><span class="tiny-tag">V1</span></div>
+        <form id="config">
+          <label for="scenario">Failure scenario</label>
+          <select id="scenario" name="scenario">
+            <option value="paused-worker">The paused worker</option>
+            <option value="lost-ack">The lost acknowledgment</option>
+            <option value="healthy">The healthy baseline</option>
+          </select>
+          <p id="scenario-help" class="field-help">Worker A pauses, loses its lease, then returns before Worker B writes.</p>
+          <label for="seed">Schedule seed</label>
+          <input id="seed" name="seed" type="number" value="7" min="-9007199254740991" max="9007199254740991" step="1" required>
+          <label for="lease">Lease duration <span>virtual ms</span></label>
+          <input id="lease" name="lease_ms" type="number" value="100" min="20" max="10000" step="1" required>
+          <button id="run" class="primary" type="submit">Run comparison <span aria-hidden="true">&#8594;</span></button>
+        </form>
+        <p id="status" class="status" role="status" aria-live="polite">Preparing experiment...</p>
+        <div id="error" class="error" role="alert" hidden></div>
+        <div class="divider"></div>
+        <p class="eyebrow">WHAT WE CHECK</p>
+        <div class="invariant"><span>01</span><div><strong>No stale write</strong><p>A superseded attempt must not commit.</p></div></div>
+        <div class="invariant"><span>02</span><div><strong>One logical effect</strong><p>Retries must not repeat a committed effect.</p></div></div>
+        <div class="model-note"><strong>A model, not a cluster.</strong><p>Virtual time, one authoritative scheduler, and atomic storage operations. Seed exploration is not a proof of all possible failures.</p></div>
+      </aside>
+      <div class="experiment">
+        <section aria-labelledby="comparison-title">
+          <div class="section-heading"><h2 id="comparison-title">Three ways to handle the same failure</h2><span class="eyebrow">SELECT A POLICY TO INSPECT</span></div>
+          <div id="policies" class="policy-grid"></div>
+        </section>
+        <section class="panel replay-panel" aria-labelledby="replay-title">
+          <div class="section-heading"><div><p class="eyebrow">EVENT REPLAY</p><h2 id="replay-title">Fencing + idempotency</h2></div><span id="replay-verdict" class="badge"></span></div>
+          <div class="topology" aria-label="Model components">
+            <div><small>COORDINATION</small><strong>Lease authority</strong><span id="authority-state">epoch --</span></div>
+            <span class="connector" aria-hidden="true">&#8594;</span>
+            <div><small>EXECUTION</small><strong id="owner-state">Worker --</strong><span>at-least-once attempts</span></div>
+            <span class="connector" aria-hidden="true">&#8594;</span>
+            <div><small>EFFECT BOUNDARY</small><strong>Side-effect store</strong><span id="store-state">fence -- / writes --</span></div>
+          </div>
+          <div class="timeline-wrap"><svg id="timeline" viewBox="0 0 860 228" role="img" aria-label="Virtual-time swimlane diagram for the selected policy"></svg></div>
+          <p class="scroll-hint">Swipe the timeline to inspect later events. All times are virtual.</p>
+          <div class="legend"><span><i class="dot info"></i>Protocol</span><span><i class="dot fault"></i>Fault</span><span><i class="dot accepted"></i>Commit</span><span><i class="dot rejected"></i>Rejected / deduplicated</span><span><i class="dot violation"></i>Violation</span></div>
+          <div class="playback">
+            <button id="previous" class="icon-button" aria-label="Previous event" disabled>&#8592;</button>
+            <button id="play" class="secondary" disabled>Replay</button>
+            <button id="next" class="icon-button" aria-label="Next event" disabled>&#8594;</button>
+            <input id="cursor" type="range" min="0" max="0" value="0" aria-label="Replay event" disabled>
+            <output id="clock">t = 0 ms</output>
+          </div>
+          <div id="explanation" class="explanation" aria-live="polite">Run a comparison to inspect a trace.</div>
+        </section>
+        <section class="panel evidence" aria-labelledby="evidence-title">
+          <div class="section-heading"><div><p class="eyebrow">NO INVISIBLE MAGIC</p><h2 id="evidence-title">The write boundary is the safety boundary.</h2></div><button id="download" class="secondary" disabled>Export JSON</button></div>
+          <p id="policy-explanation">Fencing rejects old owners. A durable idempotency key prevents repeated effects.</p>
+          <div class="trace-scroll"><table><thead><tr><th>Virtual time</th><th>Actor</th><th>Event</th><th>Token</th><th>Outcome</th></tr></thead><tbody id="trace"></tbody></table></div>
+        </section>
+      </div>
+    </div>
+    <footer><span>FenceLab / deterministic failure laboratory</span><span>All times are simulated. No throughput or production-safety claims.</span></footer>
+  </main>
+</body>
+</html>

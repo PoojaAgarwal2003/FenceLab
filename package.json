@@ -1,0 +1,12 @@
+{
+  "name": "fencelab-browser-checks",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser checks only; FenceLab itself runs from a single Go binary.",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

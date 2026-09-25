@@ -1,6 +1,8 @@
 /bin/
 /out/
 /web-test-results/
+/node_modules/
+/playwright-report/
 *.exe
 *.test
 *.prof
