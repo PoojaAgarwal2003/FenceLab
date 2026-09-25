@@ -1,0 +1,33 @@
+{
+  "model": "fencelab/v1",
+  "start_seed": 0,
+  "seeds": 1000,
+  "runs": 9000,
+  "protected_failures": 0,
+  "expected_unsafe_runs": 3000,
+  "unexpected_outcomes": 0,
+  "first_unsafe_witness": {
+    "config": {
+      "seed": 0,
+      "scenario": "paused-worker",
+      "policy": "lease-only",
+      "lease_ms": 100
+    },
+    "violations": [
+      {
+        "step": 8,
+        "at_ms": 128,
+        "kind": "stale-write",
+        "detail": "A superseded attempt committed after a newer ownership epoch was issued."
+      },
+      {
+        "step": 11,
+        "at_ms": 139,
+        "kind": "duplicate-effect",
+        "detail": "The same logical effect was committed more than once."
+      }
+    ]
+  },
+  "first_unexpected": null,
+  "scope": "Seeded timings in three fixed templates; not exhaustive interleaving exploration or a distributed-systems proof."
+}

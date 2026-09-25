@@ -1,0 +1,64 @@
+name: Verify FenceLab
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    name: Go / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Formatting
+        shell: bash
+        run: test -z "$(gofmt -l cmd internal)"
+      - run: go test -count=1 ./...
+      - run: go vet ./...
+      - run: go build ./...
+      - name: Race detection
+        if: runner.os == 'Linux'
+        run: go test -race -count=1 ./...
+      - name: Seeded regression exploration
+        run: go run ./cmd/fencelab check -start-seed 0 -seeds 1000
+
+  browser:
+    name: Chromium / desktop and mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-traces
+          path: web-test-results/
+          retention-days: 7
