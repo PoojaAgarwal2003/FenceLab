@@ -9,6 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/PoojaAgarwal2003/FenceLab/internal/bridge"
+	"github.com/PoojaAgarwal2003/FenceLab/internal/model"
+	"github.com/PoojaAgarwal2003/FenceLab/internal/sim"
 )
 
 func TestPhysicalLabs(t *testing.T) {
@@ -50,6 +54,43 @@ func TestPhysicalLabs(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &decoded); err != nil {
 		t.Fatal(err)
 	}
+	t.Run("real-processes", func(t *testing.T) {
+		for _, mode := range []string{"barrier", "eager"} {
+			scenario := model.Example(mode)
+			search, err := model.Search(ctx, model.SearchRequest{Scenario: scenario, Bounds: model.Bounds{MaxStates: 2000, MaxDepth: 80}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			report, err := bridge.Run(ctx, executable, filepath.Join(t.TempDir(), "processes"), scenario, 7, search.Witness)
+			if err != nil || !report.MatchesModel || !report.RestartVerified || (mode == "eager" && report.Observed.StaleWrites != 1) {
+				t.Fatalf("%s: %+v %v", mode, report, err)
+			}
+			if err := bridge.Check(ctx, report); err != nil {
+				t.Fatal(err)
+			}
+			report.History[0].Response.Token++
+			if err := bridge.Check(ctx, report); err == nil {
+				t.Fatal("accepted altered process history")
+			}
+		}
+		for _, policy := range []sim.Policy{sim.LeaseOnly, sim.Fenced, sim.Idempotent} {
+			s := model.Example("barrier")
+			s.Policy = policy
+			s.Faults = []model.Fault{{Kind: "result", Action: "drop"}, {Kind: "write", Action: "duplicate"}}
+			report, err := bridge.Run(ctx, executable, filepath.Join(t.TempDir(), "retry"), s, 11, nil)
+			if err != nil || !report.MatchesModel || report.Observed.Completed {
+				t.Fatalf("lost result %s: %+v %v", policy, report, err)
+			}
+		}
+		for _, name := range []string{"partition", "lost-result"} {
+			s := model.Examples()[name]
+			s.ClockSkewMS = model.ClockSkew{-10000, 10000}
+			report, err := bridge.Run(ctx, executable, filepath.Join(t.TempDir(), name), s, -17, nil)
+			if err != nil || !report.Observed.Safe || !report.Observed.Completed {
+				t.Fatalf("%s: %+v %v", name, report, err)
+			}
+		}
+	})
 }
 
 func TestDurabilityCLIValidation(t *testing.T) {

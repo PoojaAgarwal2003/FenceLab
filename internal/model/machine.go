@@ -3,19 +3,14 @@ package model
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"slices"
 
+	"github.com/PoojaAgarwal2003/FenceLab/internal/protocol"
 	"github.com/PoojaAgarwal2003/FenceLab/internal/sim"
 )
 
-type Envelope struct {
-	ID    int    `json:"id"`
-	Kind  string `json:"kind"`
-	From  string `json:"from"`
-	To    string `json:"to"`
-	Token int    `json:"token"`
-	Key   string `json:"key"`
-}
+type Envelope = protocol.Envelope
 
 type Event struct {
 	AtMS    int      `json:"at_ms"`
@@ -52,6 +47,9 @@ type machine struct {
 	pending    []Event
 	result     Result
 	capture    bool
+	transport  protocol.Transport
+	ctx        context.Context
+	err        error
 }
 
 func worker(token int) string {
@@ -62,16 +60,38 @@ func worker(token int) string {
 }
 
 func newMachine(s Scenario, capture bool) *machine {
+	return newTransportMachine(context.Background(), s, capture, nil)
+}
+
+func newTransportMachine(ctx context.Context, s Scenario, capture bool, transport protocol.Transport) *machine {
 	m := &machine{scenario: s, capture: capture, result: Result{
 		Model: Version, Scenario: s, Trace: []sim.Entry{}, Effects: []sim.Effect{},
 		Violations: []sim.Violation{}, Replay: ReplayFile{Version: Version, Scenario: s, Decisions: []int{}},
 	}}
+	m.ctx, m.transport = ctx, transport
 	for _, p := range s.Partitions {
 		m.enqueue(p.StartMS, Envelope{Kind: "partition", From: p.From, To: p.To})
 		m.enqueue(p.EndMS, Envelope{Kind: "heal", From: p.From, To: p.To})
 	}
+
 	m.claim()
 	return m
+}
+
+func (m *machine) exchange(to, operation string, token int, expected protocol.Response) {
+	if m.transport == nil || m.err != nil {
+		return
+	}
+	request := protocol.Request{AtMS: m.now, To: to, Operation: operation, Token: token}
+	if operation == "write" {
+		request.Key = "invoice-001"
+	}
+	got, err := m.transport.Call(m.ctx, request)
+	if err != nil {
+		m.err = fmt.Errorf("%s/%s transport: %w", to, operation, err)
+	} else if got != expected {
+		m.err = fmt.Errorf("%s/%s differs from model: got %+v, expected %+v", to, operation, got, expected)
+	}
 }
 
 func (m *machine) clone() *machine {
@@ -146,6 +166,7 @@ func (m *machine) send(kind, from, to string, token int) {
 
 func (m *machine) claim() {
 	m.issued++
+	m.exchange("authority", "reserve", m.issued, protocol.Response{Status: "reserved", Token: m.issued})
 	m.record("authority", "epoch_issued", m.issued, "info", "Reserve a new token. Issuance alone does not activate ownership in the barrier protocol.")
 	if m.scenario.Policy == sim.LeaseOnly {
 		m.activate(m.issued)
@@ -163,6 +184,7 @@ func (m *machine) activate(token int) {
 	}
 	m.dispatched[token] = true
 	m.state.Epoch, m.state.Owner = token, worker(token)
+	m.exchange("authority", "activate", token, protocol.Response{Status: "active", Token: token})
 	m.record("authority", "ownership_activated", token, "info", "Ownership becomes active; start the authoritative lease and dispatch this attempt.")
 	m.send("dispatch", "authority", worker(token), token)
 	m.enqueue(m.now+m.scenario.LeaseMS, Envelope{Kind: "expire", From: "authority", To: "authority", Token: token})
@@ -211,6 +233,7 @@ func (m *machine) advance(id int) error {
 		}
 	case "work", "retry":
 		if !m.acked[msg.Token] {
+			m.exchange(worker(msg.Token), "work", msg.Token, protocol.Response{Status: "ready", Token: msg.Token})
 			m.record(worker(msg.Token), msg.Kind, msg.Token, "info", "Request the same logical effect using this attempt's token.")
 			m.send("write", worker(msg.Token), "store", msg.Token)
 			if msg.Kind == "work" {
@@ -222,13 +245,20 @@ func (m *machine) advance(id int) error {
 		switch msg.Kind {
 		case "fence":
 			m.state.StorageFence = max(m.state.StorageFence, msg.Token)
+			m.exchange("store", "fence", msg.Token, protocol.Response{Status: "fenced", Fence: m.state.StorageFence, Effects: len(m.result.Effects)})
 			m.record("store", "fence_installed", msg.Token, "info", "Raise the storage fence monotonically. Acknowledgment travels separately.")
 			m.send("fence-ack", "store", "authority", msg.Token)
 		case "fence-ack":
+			m.exchange("authority", "ack", msg.Token, protocol.Response{Status: "acknowledged", Token: msg.Token})
 			if m.scenario.Protocol == "barrier" {
 				m.activate(msg.Token)
 			}
 		case "dispatch":
+			status := "duplicate"
+			if !m.started[msg.Token] {
+				status = "started"
+			}
+			m.exchange(msg.To, "dispatch", msg.Token, protocol.Response{Status: status, Token: msg.Token})
 			if !m.started[msg.Token] {
 				m.started[msg.Token] = true
 				m.record(worker(msg.Token), "started", msg.Token, "info", "Dispatch received; duplicate dispatches for this token are ignored.")
@@ -238,6 +268,8 @@ func (m *machine) advance(id int) error {
 			m.write(msg)
 		case "result":
 			m.acked[msg.Token] = true
+			completed := m.state.Completed || (msg.Token == m.state.Epoch && msg.Token == m.issued)
+			m.exchange("authority", "result", msg.Token, protocol.Response{Status: "result", Token: msg.Token, Completed: completed})
 			if msg.Token == m.state.Epoch && msg.Token == m.issued {
 				m.state.Completed = true
 				m.record("authority", "job_completed", msg.Token, "accepted", "A current-attempt result confirms the effect.")
@@ -248,16 +280,18 @@ func (m *machine) advance(id int) error {
 			return fmt.Errorf("unknown event kind %q", msg.Kind)
 		}
 	}
-	return nil
+	return m.err
 }
 
 func (m *machine) write(msg Envelope) {
 	if m.scenario.Policy != sim.LeaseOnly && msg.Token < m.state.StorageFence {
+		m.exchange("store", "write", msg.Token, protocol.Response{Status: "rejected", Fence: m.state.StorageFence, Effects: len(m.result.Effects)})
 		m.result.Summary.RejectedWrites++
 		m.record("store", "stale_rejected", msg.Token, "rejected", "Storage rejects a token below the installed fence.")
 		return
 	}
 	if m.scenario.Policy == sim.Idempotent && len(m.result.Effects) > 0 {
+		m.exchange("store", "write", msg.Token, protocol.Response{Status: "deduplicated", Token: m.result.Effects[0].Token, Fence: m.state.StorageFence, Effects: len(m.result.Effects)})
 		m.result.Summary.Deduplicated++
 		m.record("store", "effect_deduplicated", msg.Token, "deduplicated", "Return the existing logical result without a new effect.")
 		m.send("result", "store", "authority", msg.Token)
@@ -265,6 +299,7 @@ func (m *machine) write(msg Envelope) {
 	}
 	m.result.Effects = append(m.result.Effects, sim.Effect{AtMS: m.now, Worker: msg.From, Token: msg.Token, CurrentEpoch: m.state.Epoch, Key: msg.Key})
 	m.state.Writes++
+	m.exchange("store", "write", msg.Token, protocol.Response{Status: "committed", Token: msg.Token, Fence: m.state.StorageFence, Effects: len(m.result.Effects)})
 	stale, duplicate := msg.Token < m.state.Epoch, m.state.Writes > 1
 	outcome := "accepted"
 	if stale || duplicate {
@@ -323,13 +358,22 @@ func Run(ctx context.Context, s Scenario) (Result, error) {
 }
 
 func Replay(ctx context.Context, replay ReplayFile) (Result, error) {
+	return ReplayTransport(ctx, replay, nil)
+}
+
+// ReplayTransport drives the same exact event prefix through independently
+// implemented actors, checking each protocol response against the model.
+func ReplayTransport(ctx context.Context, replay ReplayFile, transport protocol.Transport) (Result, error) {
 	if replay.Version != Version || len(replay.Decisions) > MaxEvents {
 		return Result{}, fmt.Errorf("invalid replay version or more than %d decisions", MaxEvents)
 	}
 	if err := replay.Scenario.Validate(); err != nil {
 		return Result{}, err
 	}
-	m := newMachine(replay.Scenario, true)
+	m := newTransportMachine(ctx, replay.Scenario, true, transport)
+	if m.err != nil {
+		return Result{}, m.err
+	}
 	for _, id := range replay.Decisions {
 		if err := ctx.Err(); err != nil {
 			return Result{}, err
@@ -343,4 +387,33 @@ func Replay(ctx context.Context, replay ReplayFile) (Result, error) {
 		reason = "quiescent"
 	}
 	return m.finish(reason), nil
+}
+
+// RunTransport is a seeded fault proxy over the model's enabled delivery queue.
+// It does not sleep or claim that OS process scheduling matches virtual time.
+func RunTransport(ctx context.Context, s Scenario, seed int64, transport protocol.Transport) (Result, error) {
+	if err := s.Validate(); err != nil {
+		return Result{}, err
+	}
+	if err := ctx.Err(); err != nil {
+		return Result{}, err
+	}
+	m := newTransportMachine(ctx, s, true, transport)
+	if m.err != nil {
+		return Result{}, m.err
+	}
+	random := rand.New(rand.NewSource(seed))
+	for step := 0; len(m.pending) > 0; step++ {
+		if err := ctx.Err(); err != nil {
+			return Result{}, err
+		}
+		if step == MaxEvents {
+			return m.finish("event-limit"), nil
+		}
+		ids := m.enabled()
+		if err := m.advance(ids[random.Intn(len(ids))]); err != nil {
+			return Result{}, err
+		}
+	}
+	return m.finish("quiescent"), nil
 }

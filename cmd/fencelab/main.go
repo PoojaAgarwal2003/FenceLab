@@ -29,6 +29,12 @@ func run(ctx context.Context, args []string, out, errOut io.Writer) int {
 		return 0
 	}
 	command := args[0]
+	if command == "bridge" {
+		return bridgeCommand(ctx, args[1:], out, errOut)
+	}
+	if command == "actor" {
+		return actorCommand(ctx, args[1:], out, errOut)
+	}
 	if command == "durability" || command == "recover" || command == "wal-probe" {
 		return durableCommand(ctx, command, args[1:], out, errOut)
 	}
