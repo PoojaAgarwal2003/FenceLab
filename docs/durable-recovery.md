@@ -51,3 +51,30 @@ log, restart at append/sync/apply boundaries, retry effects, recover epochs and
 fences, and attempt concurrent ownership. The original simulation results remain
 unchanged; persistence is a separate implementation rather than retroactive
 evidence that the models already implemented crash recovery.
+
+## Kill actual processes
+
+```sh
+go run ./cmd/fencelab durability -dir crash-experiment
+go run ./cmd/fencelab recover -wal crash-experiment/write-after-sync.wal
+```
+
+The first command creates a **new** directory (existing paths are refused),
+initializes 15 separate logs, starts a child copy of the executable for each
+case, waits for a checkpoint on its stdout pipe, forcibly kills its PID, then
+recovers and retries. The matrix is reserve/fence/write crossed with
+before-append/after-header/after-append/after-sync/after-apply. The child is
+blocked at its checkpoint; this is not a graceful shutdown or a simulated
+exception. Artifacts remain on disk, including when a run fails.
+
+JSON output records recovered state, truncation bytes, the next reserved token,
+and the retry result. Any violated recovery invariant returns exit 1. Invalid
+flags return 2. `recover` requires an existing WAL and may repair its incomplete
+tail; it is not a read-only forensic reader. It never ignores complete corrupt
+frames. `wal-probe` is the internal child command, not a normal workload tool.
+
+The next reservation must exceed recovered state. All acknowledged baseline
+records must survive, and post-sync crashes must preserve the target operation.
+An unacknowledged complete append may survive too. For the effect test, a retry
+after recovery leaves exactly one logical ledger entry regardless of whether
+the original append survived.
