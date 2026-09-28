@@ -10,13 +10,14 @@
   <link rel="stylesheet" href="/style.css">
   <script defer src="/app.js"></script>
   <script defer src="/network.js"></script>
+  <script defer src="/artifacts.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#workbench">Skip to execution replay</a>
   <header class="masthead">
     <a class="brand" href="/" aria-label="FenceLab home"><span class="brand-mark" aria-hidden="true">F<span>/</span>L</span>FenceLab</a>
     <span class="masthead-caption">FIELD NOTES ON DISTRIBUTED EXECUTION</span>
-    <span class="edition">LABS 01&ndash;03 <span>/</span> LOCAL SIMULATION</span>
+    <span class="edition">LABS 01&ndash;05 <span>/</span> MODELS + PROCESSES</span>
   </header>
   <main>
     <section class="intro" aria-labelledby="page-title">
@@ -154,13 +155,46 @@
         </div>
       </div>
     </section>
+    <section class="artifact-lab" aria-labelledby="artifact-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">MILESTONES 04 + 05 / CROSS THE PROCESS BOUNDARY</p><h2 id="artifact-title">What survives the crash?</h2></div>
+        <span class="badge">REAL PROCESSES / CONTROLLED DELIVERY</span>
+      </div>
+      <p class="journal-caption">Kill a writer at its commit boundary, or deliver a modeled failure to four independent processes. Import the resulting JSON to inspect the recovered ledger and response history.</p>
+      <div class="artifact-flow" aria-label="Durable commit sequence"><span>Reserve epoch</span><span>Install fence + sync</span><span>Acknowledge / activate</span><span>Commit effect + key</span><span>Kill / recover / retry</span></div>
+      <div class="artifact-grid">
+        <div class="artifact-instructions">
+          <p class="eyebrow">RUN FROM YOUR TERMINAL</p>
+          <h3>Choose a real boundary</h3>
+          <p>From the repository, generate either report. Each data directory must be new.</p>
+          <pre><code>go run ./cmd/fencelab durability -dir crash-lab &gt; crash-report.json</code></pre>
+          <pre><code>go run ./cmd/fencelab bridge -replay docs/evidence/v2-counterexample.json -dir process-lab &gt; process-report.json</code></pre>
+          <label for="artifact-file">Import crash or process report <span>max 64 KiB</span></label>
+          <input id="artifact-file" type="file" accept=".json,application/json" aria-describedby="artifact-limit">
+          <p id="artifact-limit" class="field-help">The browser checks the artifact; it never launches processes or reads your WAL files. Imported JSON is evidence of internal consistency, not authenticated provenance.</p>
+        </div>
+        <div class="artifact-inspector">
+          <p id="artifact-status" class="status" role="status" aria-live="polite">No artifact loaded.</p>
+          <div id="artifact-error" class="error" role="alert" hidden></div>
+          <p id="artifact-empty">Fsync is not an acknowledgment. A lost acknowledgment is not an undone effect. Inspect the difference at a real process boundary.</p>
+          <div id="artifact-results" hidden>
+            <h3 id="artifact-heading"></h3>
+            <p id="artifact-summary" class="search-report"></p>
+            <p id="artifact-recovery" class="field-help"></p>
+            <div class="trace-scroll" tabindex="0" role="region" aria-label="Crash or process evidence journal">
+              <table><thead id="artifact-columns"></thead><tbody id="artifact-rows"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <section id="model-scope" class="model-scope" aria-labelledby="scope-title">
       <div><p class="eyebrow">READ THE FINE PRINT</p><h2 id="scope-title">A model. <span>Not a cluster.</span></h2></div>
       <div><h3>What we check</h3><p><strong>No stale writes:</strong> a superseded attempt must not commit. <strong>One logical effect:</strong> retries must not repeat an already committed effect.</p></div>
-      <div><h3>What we assume</h3><p>One authoritative scheduler, virtual time, and atomic storage operations. Storage acknowledges a new fence before dispatch. Durability is assumed, not implemented.</p></div>
-      <div><h3>What this isn't</h3><p>Milestones 1&ndash;3 are local models. v2 explores equal-time deliveries within a fixed two-attempt scenario, not arbitrary failures. Durable recovery, real processes, and scheduler workloads remain future work.</p></div>
+      <div><h3>Where the boundary moved</h3><p>v1/v2 assume atomic storage. The separate WAL now implements durable ledger effects under process crashes. The bridge runs four OS processes, while the model still controls delivery and expiry.</p></div>
+      <div><h3>What this isn't</h3><p>Milestones 1&ndash;5 are implemented, not production-ready. No power-loss proof, replicated authority, autonomous network cluster, or external exactly-once side effects. Multi-job scheduling remains future work.</p></div>
     </section>
-    <footer><span>FenceLab <span class="footer-divider">/</span> Failure investigation workbench</span><span>Deterministic by design. All displayed times are simulated.</span></footer>
+    <footer><span>FenceLab <span class="footer-divider">/</span> Failure investigation workbench</span><span>Real process boundaries. Displayed delivery times remain virtual.</span></footer>
   </main>
 </body>
 </html>

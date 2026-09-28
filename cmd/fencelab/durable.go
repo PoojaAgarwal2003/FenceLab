@@ -19,22 +19,8 @@ import (
 
 var crashPoints = []string{"before-append", "after-header", "after-append", "after-sync", "after-apply"}
 
-type crashCase struct {
-	Operation string           `json:"operation"`
-	Point     string           `json:"point"`
-	Recovery  durable.Recovery `json:"recovery"`
-	Recovered durable.State    `json:"recovered"`
-	NextToken int              `json:"next_token"`
-	Retry     durable.Outcome  `json:"retry"`
-	Safe      bool             `json:"safe"`
-}
-
-type crashReport struct {
-	Version string      `json:"version"`
-	Scope   string      `json:"scope"`
-	Cases   []crashCase `json:"cases"`
-	Safe    bool        `json:"safe"`
-}
+type crashCase = durable.CrashCase
+type crashReport = durable.CrashReport
 
 func durableCommand(ctx context.Context, command string, args []string, out, errOut io.Writer) int {
 	flags := flag.NewFlagSet(command, flag.ContinueOnError)
@@ -225,5 +211,5 @@ func runCrashLab(ctx context.Context, executable, directory string) (crashReport
 			}
 		}
 	}
-	return report, nil
+	return report, durable.CheckCrashReport(report)
 }

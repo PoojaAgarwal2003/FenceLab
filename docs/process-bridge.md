@@ -82,3 +82,13 @@ commit boundaries.
 invariants, and verifies recovered ledger records. Importing a matching JSON
 report proves **internal consistency**, not that a trusted machine produced it.
 There is no report signature or general distributed linearizability proof.
+
+## Inspect an artifact visually
+
+Start `serve` and import a `bridge` or `durability` JSON report into
+**What survives the crash?**. `POST /api/artifacts/check` accepts the report
+itself (not a path), enforces the existing loopback/origin checks and 64 KiB body
+limit, and checks its schema and invariants. It shares the bounded model request
+slot and never spawns a process. Mismatches clear the displayed result.
+Process rows show the actual actor responses and recovered epoch/fence; crash
+rows show checkpoint, repaired bytes, and retry result.

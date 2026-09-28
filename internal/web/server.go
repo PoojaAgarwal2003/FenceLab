@@ -55,7 +55,7 @@ func Handler(logger *log.Logger) http.Handler {
 			writeJSON(w, http.StatusForbidden, map[string]string{"error": "cross-site requests are not allowed"}, logger)
 			return
 		}
-		if r.URL.Path == "/api/v2/run" || r.URL.Path == "/api/v2/search" || r.URL.Path == "/api/v2/replay" {
+		if r.URL.Path == "/api/v2/run" || r.URL.Path == "/api/v2/search" || r.URL.Path == "/api/v2/replay" || r.URL.Path == "/api/artifacts/check" {
 			modelRequest(w, r, modelSlots, logger)
 			return
 		}
@@ -94,13 +94,16 @@ func Handler(logger *log.Logger) http.Handler {
 				return
 			}
 			writeJSON(w, http.StatusOK, results, logger)
-		case "/", "/app.js", "/network.js", "/style.css":
+		case "/", "/app.js", "/network.js", "/artifacts.js", "/style.css":
 			name, contentType := "index.html", "text/html; charset=utf-8"
 			if r.URL.Path == "/app.js" {
 				name, contentType = "app.js", "text/javascript; charset=utf-8"
 			}
 			if r.URL.Path == "/network.js" {
 				name, contentType = "network.js", "text/javascript; charset=utf-8"
+			}
+			if r.URL.Path == "/artifacts.js" {
+				name, contentType = "artifacts.js", "text/javascript; charset=utf-8"
 			}
 			if r.URL.Path == "/style.css" {
 				name, contentType = "style.css", "text/css; charset=utf-8"
@@ -180,7 +183,7 @@ func Serve(ctx context.Context, address string, output io.Writer) error {
 		ReadTimeout: 5 * time.Second, WriteTimeout: 10 * time.Second,
 		IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192,
 	}
-	if _, err := fmt.Fprintf(output, "FenceLab ready at http://%s (local simulation only)\n", listener.Addr()); err != nil {
+	if _, err := fmt.Fprintf(output, "FenceLab ready at http://%s (loopback models and artifact inspection)\n", listener.Addr()); err != nil {
 		if closeErr := listener.Close(); closeErr != nil {
 			return errors.Join(err, closeErr)
 		}

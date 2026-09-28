@@ -1,7 +1,9 @@
 package web
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -9,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/PoojaAgarwal2003/FenceLab/internal/bridge"
+	"github.com/PoojaAgarwal2003/FenceLab/internal/durable"
 	"github.com/PoojaAgarwal2003/FenceLab/internal/model"
 )
 
@@ -40,6 +44,12 @@ func modelRequest(w http.ResponseWriter, r *http.Request, slots chan struct{}, l
 	r.Body = http.MaxBytesReader(w, r.Body, model.MaxInput)
 	var result any
 	switch r.URL.Path {
+	case "/api/artifacts/check":
+		var raw json.RawMessage
+		err = model.Decode(r.Body, &raw)
+		if err == nil {
+			result, err = checkArtifact(ctx, raw)
+		}
 	case "/api/v2/run":
 		var scenario model.Scenario
 		err = model.Decode(r.Body, &scenario)
@@ -74,4 +84,32 @@ func modelRequest(w http.ResponseWriter, r *http.Request, slots chan struct{}, l
 		return
 	}
 	writeJSON(w, http.StatusOK, result, logger)
+}
+
+func checkArtifact(ctx context.Context, raw json.RawMessage) (any, error) {
+	var header struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(raw, &header); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	switch header.Version {
+	case bridge.Version:
+		var report bridge.Report
+		if err := model.Decode(bytes.NewReader(raw), &report); err != nil {
+			return nil, err
+		}
+		return report, bridge.Check(ctx, report)
+	case "fencelab/durability-v1":
+		var report durable.CrashReport
+		if err := model.Decode(bytes.NewReader(raw), &report); err != nil {
+			return nil, err
+		}
+		return report, durable.CheckCrashReport(report)
+	default:
+		return nil, fmt.Errorf("unsupported artifact version")
+	}
 }

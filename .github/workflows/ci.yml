@@ -45,6 +45,11 @@ jobs:
           go run ./cmd/fencelab search -file examples/eager.json -witness counterexample.json
           go run ./cmd/fencelab replay -file counterexample.json
           go run ./cmd/fencelab search -file examples/barrier.json
+      - name: Real process crash and bridge experiments
+        shell: bash
+        run: |
+          go run ./cmd/fencelab durability -dir crash-lab > crash-report.json
+          go run ./cmd/fencelab bridge -replay docs/evidence/v2-counterexample.json -dir process-lab > process-report.json
 
   browser:
     name: Chromium / desktop and mobile

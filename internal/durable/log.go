@@ -13,6 +13,7 @@ import (
 	"os"
 	"slices"
 	"sync"
+	"unicode/utf8"
 
 	"github.com/PoojaAgarwal2003/FenceLab/internal/model"
 	"github.com/PoojaAgarwal2003/FenceLab/internal/sim"
@@ -161,8 +162,8 @@ func (l *Log) validate(r Record) error {
 			return fmt.Errorf("logged fence must strictly increase")
 		}
 	case "write":
-		if len(r.Key) < 1 || len(r.Key) > 128 {
-			return fmt.Errorf("effect key must contain 1-128 bytes")
+		if len(r.Key) < 1 || len(r.Key) > 128 || !utf8.ValidString(r.Key) {
+			return fmt.Errorf("effect key must contain 1-128 valid UTF-8 bytes")
 		}
 		if r.Policy != sim.LeaseOnly && r.Policy != sim.Fenced && r.Policy != sim.Idempotent {
 			return fmt.Errorf("invalid storage policy")
@@ -294,7 +295,7 @@ func (l *Log) Write(token int, key string, policy sim.Policy) (Outcome, error) {
 		return Outcome{}, l.poisoned
 	}
 	r := Record{Operation: "write", Token: token, Key: key, Policy: policy}
-	if token < 1 || token > MaxToken || len(key) < 1 || len(key) > 128 ||
+	if token < 1 || token > MaxToken || len(key) < 1 || len(key) > 128 || !utf8.ValidString(key) ||
 		(policy != sim.LeaseOnly && policy != sim.Fenced && policy != sim.Idempotent) {
 		return Outcome{}, fmt.Errorf("invalid effect request")
 	}

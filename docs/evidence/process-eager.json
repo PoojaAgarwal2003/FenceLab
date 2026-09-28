@@ -1,0 +1,298 @@
+{
+  "version": "fencelab/bridge-v1",
+  "scope": "four real child processes; private pipes; model-controlled virtual delivery; process-crash recovery; not an autonomous cluster",
+  "mode": "exact-prefix",
+  "seed": "7",
+  "processes": 4,
+  "history": [
+    {
+      "sequence": 1,
+      "request": {
+        "at_ms": 0,
+        "operation": "reserve",
+        "to": "authority",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "reserved",
+        "token": 1,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 2,
+      "request": {
+        "at_ms": 0,
+        "operation": "activate",
+        "to": "authority",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "active",
+        "token": 1,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 3,
+      "request": {
+        "at_ms": 1,
+        "operation": "fence",
+        "to": "store",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "fenced",
+        "token": 0,
+        "fence": 1,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 4,
+      "request": {
+        "at_ms": 1,
+        "operation": "dispatch",
+        "to": "worker-a",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "started",
+        "token": 1,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 5,
+      "request": {
+        "at_ms": 2,
+        "operation": "ack",
+        "to": "authority",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "acknowledged",
+        "token": 1,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 6,
+      "request": {
+        "at_ms": 6,
+        "operation": "work",
+        "to": "worker-a",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "ready",
+        "token": 1,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 7,
+      "request": {
+        "at_ms": 16,
+        "operation": "work",
+        "to": "worker-a",
+        "token": 1,
+        "key": ""
+      },
+      "response": {
+        "status": "ready",
+        "token": 1,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 8,
+      "request": {
+        "at_ms": 20,
+        "operation": "reserve",
+        "to": "authority",
+        "token": 2,
+        "key": ""
+      },
+      "response": {
+        "status": "reserved",
+        "token": 2,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 9,
+      "request": {
+        "at_ms": 20,
+        "operation": "activate",
+        "to": "authority",
+        "token": 2,
+        "key": ""
+      },
+      "response": {
+        "status": "active",
+        "token": 2,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 10,
+      "request": {
+        "at_ms": 21,
+        "operation": "dispatch",
+        "to": "worker-b",
+        "token": 2,
+        "key": ""
+      },
+      "response": {
+        "status": "started",
+        "token": 2,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 11,
+      "request": {
+        "at_ms": 26,
+        "operation": "work",
+        "to": "worker-b",
+        "token": 2,
+        "key": ""
+      },
+      "response": {
+        "status": "ready",
+        "token": 2,
+        "fence": 0,
+        "effects": 0,
+        "completed": false
+      }
+    },
+    {
+      "sequence": 12,
+      "request": {
+        "at_ms": 27,
+        "operation": "write",
+        "to": "store",
+        "token": 1,
+        "key": "invoice-001"
+      },
+      "response": {
+        "status": "committed",
+        "token": 1,
+        "fence": 1,
+        "effects": 1,
+        "completed": false
+      }
+    }
+  ],
+  "replay": {
+    "version": "fencelab/v2",
+    "scenario": {
+      "version": "fencelab/v2",
+      "name": "Unsafe dispatch before fence acknowledgment",
+      "policy": "fenced-idempotent",
+      "protocol": "eager",
+      "lease_ms": 20,
+      "work_ms": 5,
+      "latency_ms": 1,
+      "clock_skew_ms": [
+        0,
+        0
+      ],
+      "faults": [
+        {
+          "kind": "write",
+          "from": "worker-a",
+          "to": "",
+          "token": 1,
+          "action": "delay",
+          "delay_ms": 20
+        },
+        {
+          "kind": "fence",
+          "from": "",
+          "to": "",
+          "token": 2,
+          "action": "delay",
+          "delay_ms": 20
+        }
+      ],
+      "partitions": []
+    },
+    "decisions": [
+      1,
+      2,
+      4,
+      5,
+      7,
+      3,
+      10,
+      12,
+      6
+    ]
+  },
+  "expected": {
+    "accepted_writes": 1,
+    "stale_writes": 1,
+    "duplicate_writes": 0,
+    "rejected_writes": 0,
+    "deduplicated": 0,
+    "completed": false,
+    "safe": false
+  },
+  "observed": {
+    "accepted_writes": 1,
+    "stale_writes": 1,
+    "duplicate_writes": 0,
+    "rejected_writes": 0,
+    "deduplicated": 0,
+    "completed": false,
+    "safe": false
+  },
+  "matches_model": true,
+  "recovered_authority": {
+    "sequence": 2,
+    "epoch": 2,
+    "fence": 0,
+    "effects": []
+  },
+  "recovered_store": {
+    "sequence": 2,
+    "epoch": 0,
+    "fence": 1,
+    "effects": [
+      {
+        "sequence": 2,
+        "token": 1,
+        "key": "invoice-001"
+      }
+    ]
+  },
+  "next_token": 3,
+  "restart_verified": true
+}

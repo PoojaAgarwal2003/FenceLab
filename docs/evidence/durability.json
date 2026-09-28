@@ -1,0 +1,385 @@
+{
+  "version": "fencelab/durability-v1",
+  "scope": "process-kill; local filesystem; ledger effects only; not power-loss proof",
+  "cases": [
+    {
+      "operation": "reserve",
+      "point": "before-append",
+      "recovery": {
+        "records": 2,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 2,
+        "epoch": 1,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 4,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "reserve",
+      "point": "after-header",
+      "recovery": {
+        "records": 2,
+        "truncated_bytes": 24
+      },
+      "recovered": {
+        "sequence": 2,
+        "epoch": 1,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 4,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "reserve",
+      "point": "after-append",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 2,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 3,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 5,
+          "token": 3,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "reserve",
+      "point": "after-sync",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 2,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 3,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 5,
+          "token": 3,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "reserve",
+      "point": "after-apply",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 2,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 3,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 5,
+          "token": 3,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "fence",
+      "point": "before-append",
+      "recovery": {
+        "records": 2,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 2,
+        "epoch": 1,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 4,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "fence",
+      "point": "after-header",
+      "recovery": {
+        "records": 2,
+        "truncated_bytes": 24
+      },
+      "recovered": {
+        "sequence": 2,
+        "epoch": 1,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 4,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "fence",
+      "point": "after-append",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 1,
+        "fence": 2,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 5,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "fence",
+      "point": "after-sync",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 1,
+        "fence": 2,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 5,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "fence",
+      "point": "after-apply",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 1,
+        "fence": 2,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 5,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "write",
+      "point": "before-append",
+      "recovery": {
+        "records": 2,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 2,
+        "epoch": 1,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 4,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "write",
+      "point": "after-header",
+      "recovery": {
+        "records": 2,
+        "truncated_bytes": 24
+      },
+      "recovered": {
+        "sequence": 2,
+        "epoch": 1,
+        "fence": 1,
+        "effects": []
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "committed",
+        "effect": {
+          "sequence": 4,
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "write",
+      "point": "after-append",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 1,
+        "fence": 1,
+        "effects": [
+          {
+            "sequence": 3,
+            "token": 1,
+            "key": "invoice-001"
+          }
+        ]
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "deduplicated",
+        "effect": {
+          "sequence": 3,
+          "token": 1,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "write",
+      "point": "after-sync",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 1,
+        "fence": 1,
+        "effects": [
+          {
+            "sequence": 3,
+            "token": 1,
+            "key": "invoice-001"
+          }
+        ]
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "deduplicated",
+        "effect": {
+          "sequence": 3,
+          "token": 1,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    },
+    {
+      "operation": "write",
+      "point": "after-apply",
+      "recovery": {
+        "records": 3,
+        "truncated_bytes": 0
+      },
+      "recovered": {
+        "sequence": 3,
+        "epoch": 1,
+        "fence": 1,
+        "effects": [
+          {
+            "sequence": 3,
+            "token": 1,
+            "key": "invoice-001"
+          }
+        ]
+      },
+      "next_token": 2,
+      "retry": {
+        "status": "deduplicated",
+        "effect": {
+          "sequence": 3,
+          "token": 1,
+          "key": "invoice-001"
+        }
+      },
+      "safe": true
+    }
+  ],
+  "safe": true
+}

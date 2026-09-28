@@ -8,6 +8,14 @@
 *.prof
 /coverage.out
 /counterexample.json
+/crash-lab/
+/crash-experiment/
+/process-lab/
+/bridge-eager/
+/bridge-barrier/
+/bridge-retry/
+/crash-report.json
+/process-report.json
 .env
 .env.*
 !.env.example

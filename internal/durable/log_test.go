@@ -190,6 +190,9 @@ func TestInvalidRequestsAndDeliberatelyUnsafePolicies(t *testing.T) {
 	if _, err := l.Write(1, "", sim.Idempotent); err == nil {
 		t.Fatal("accepted empty key")
 	}
+	if _, err := l.Write(1, string([]byte{0xff}), sim.Idempotent); err == nil {
+		t.Fatal("accepted key that changes during JSON serialization")
+	}
 	if _, err := l.Write(1, "key", "unknown"); err == nil {
 		t.Fatal("accepted unknown policy")
 	}

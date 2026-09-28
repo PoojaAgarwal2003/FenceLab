@@ -16,9 +16,10 @@ difference at the write boundary.
 [Architecture](docs/architecture.md) · [Next milestones](docs/roadmap.md) ·
 [Recorded evidence](docs/evidence.md)
 
-**Milestones 1-3 are implemented:** the original ownership experiment,
-programmable message faults, and bounded delivery-order exploration.
-This remains a local simulation, not a distributed production scheduler.
+**Milestones 1-5 are implemented:** ownership experiments, programmable faults,
+bounded exploration, crash-safe ledger recovery, and a four-process bridge.
+The models control delivery timing; this is not a production scheduler or an
+autonomously timed distributed cluster.
 
 ![FenceLab's failure investigation workbench](docs/images/workbench-desktop.png)
 
@@ -61,12 +62,14 @@ barrier; simply recording the highest token seen on normal writes is weaker.
 
 Fencing also does not deduplicate a valid newer attempt. That requires a
 job-scoped effect key checked atomically with the effect. The model assumes
-durable fencing and effect-key state, but does not yet implement disk persistence
-or storage crashes. It makes no general "exactly-once execution" claim.
+durable fencing and effect-key state. A separate WAL and process bridge now
+exercise those boundaries on disk under process crashes; neither retroactively
+changes the model into a storage engine. There is no general "exactly-once
+execution" claim.
 
 ## Run locally
 
-Install **Go 1.27+**, then:
+Install **Go 1.27+** on Windows or Linux, then:
 
 ```sh
 git clone https://github.com/PoojaAgarwal2003/FenceLab.git
@@ -160,6 +163,51 @@ Export/import them directly in the browser. See
 
 ![The v2 fault transport and replay laboratory](docs/images/transport-desktop.png)
 
+## Beyond memory: recovery and real processes
+
+The WAL persists epoch reservations, storage fences, and effects together with
+their idempotency keys. Every acknowledged mutation follows a checksummed append
+and file sync. Recovery rejects complete corrupt records and repairs incomplete
+tails. OS file locks prevent concurrent writers.
+
+```sh
+# Kill actual child processes at 15 append/sync/apply boundaries.
+go run ./cmd/fencelab durability -dir crash-lab > crash-report.json
+
+# Deliver the nine-decision counterexample to four independent OS processes.
+go run ./cmd/fencelab bridge -replay docs/evidence/v2-counterexample.json -dir process-lab > process-report.json
+
+# Inspect a recovered ledger (may repair an incomplete tail).
+go run ./cmd/fencelab recover -wal crash-lab/write-after-sync.wal
+```
+
+Directories must be new; existing files are never overwritten. Import either
+JSON report into **"What survives the crash?"** in the dashboard. The server
+rechecks the history against the model and the recovery invariants, but never
+launches processes or opens WAL paths from browser requests.
+
+The process bridge runs a separate authority, two workers, and an effect store
+over private versioned JSON pipes. The parent is a **seeded fault proxy**:
+delay/drop/duplicate/partition rules remain controlled virtual deliveries.
+Independent actor responses are checked at each operation, not just at the end.
+Authority and store are then killed and restarted from their WALs.
+
+The recorded eager prefix commits **one stale effect** and matches the model.
+The barrier and lost-result runs each retain **one logical effect**, survive
+restart, and match their modeled histories. All 15 crash cases preserve the
+required recovery invariants. These are observations, not performance numbers.
+
+**Limits:** the effect is a WAL ledger entry, not an external payment or RPC.
+Process-kill tests are not power-loss proof. No quorum, network packet-loss test,
+autonomous worker clocks, or recovery of pending delivery queues is implied.
+See [durability guarantees](docs/durable-recovery.md),
+[the process bridge](docs/process-bridge.md), and [raw evidence](docs/evidence.md).
+
+![The real-process history and recovered ledger inspector](docs/images/process-desktop.png)
+
+See the [mobile process view](docs/images/process-mobile.png) and
+[crash-recovery matrix](docs/images/recovery-desktop.png).
+
 ## Engineering underneath
 
 - **v1 discrete-event min-heap:** events are ordered by `(virtual time, insertion
@@ -179,6 +227,10 @@ Export/import them directly in the browser. See
 - **Bounded BFS and canonical state hashing:** explore equal-time event choices,
   merge equivalent states, and reconstruct shortest violating prefixes through
   parent links.
+- **Framed WAL and CRC32C:** recover monotonic epochs, fences, and effect keys;
+  distinguish incomplete tails from corrupt complete records.
+- **Process-boundary response checking:** run independent durable actors behind
+  the same delivery driver and compare their actual histories with the model.
 
 The model avoids goroutine scheduling, sleeps, wall-clock reads, and global
 random state. The real HTTP interface has bounded admission, explicit overload
@@ -212,11 +264,10 @@ evidence expectations.
 
 ## Where this goes next
 
-**Milestones 1-3 of 6 are complete; the full advanced project is not finished.**
-The [roadmap](docs/roadmap.md) next adds crash-safe persistence, a multi-process
-implementation checked against the model, and multi-job scheduler workloads.
-Those capabilities remain future work. No actual disk durability or real
-distributed deployment is claimed by either current simulation model.
+**Milestones 1-5 of 6 are complete; the full advanced project is not finished.**
+The [roadmap](docs/roadmap.md) next adds multi-job scheduler workloads, bounded
+queues, fairness, retry budgets, and measured overload/recovery behavior.
+The current process bridge is intentionally controlled and local.
 
 ## Attribution and licensing
 

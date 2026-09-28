@@ -3,6 +3,10 @@
 This page describes the preserved **v1** model and original comparison API.
 For the independently versioned v2 message transport, reserved/active epoch
 distinction, and bounded exploration, see [transport and search](transport-and-search.md).
+For milestone 4's actual ledger persistence and milestone 5's four-process
+execution, see [durable recovery](durable-recovery.md) and
+[the controlled process bridge](process-bridge.md). The browser can validate
+their imported reports without launching actors or opening arbitrary WAL paths.
 
 ## Two layers, one deterministic model
 
