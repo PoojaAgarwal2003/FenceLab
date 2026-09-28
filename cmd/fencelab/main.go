@@ -21,7 +21,7 @@ func main() {
 
 func run(ctx context.Context, args []string, out, errOut io.Writer) int {
 	if len(args) == 0 || args[0] == "-help" || args[0] == "help" {
-		_, err := fmt.Fprintln(out, "FenceLab: deterministic lease, fencing, and idempotency laboratory\n\nCommands:\n  serve    Open the local interactive failure laboratory\n  run      Replay one scenario and policy as JSON\n  compare  Replay the same schedule under three policies\n  check    Explore bounded seeded schedules and check expected outcomes\n\nUse COMMAND -help for flags. All times are virtual milliseconds.")
+		_, err := fmt.Fprintln(out, "FenceLab: deterministic lease, fencing, and idempotency laboratory\n\nCommands:\n  serve    Open the local interactive failure laboratory\n  run      Replay one v1 scenario and policy as JSON\n  compare  Replay the same v1 schedule under three policies\n  check    Explore bounded v1 seeded schedules and check expected outcomes\n  network  Execute a v2 message-fault scenario (-file)\n  search   Explore bounded v2 delivery orders (-file, -max-states, -max-depth)\n  replay   Replay a v2 event-decision witness (-file)\n\nUse COMMAND -help for flags. All times are virtual milliseconds.")
 		if err != nil {
 			fmt.Fprintln(errOut, err)
 			return 1
@@ -31,6 +31,9 @@ func run(ctx context.Context, args []string, out, errOut io.Writer) int {
 	command := args[0]
 	if command == "serve" {
 		return serve(ctx, args[1:], errOut)
+	}
+	if command == "network" || command == "search" || command == "replay" {
+		return modelCommand(ctx, command, args[1:], out, errOut)
 	}
 	if command != "run" && command != "compare" && command != "check" {
 		fmt.Fprintf(errOut, "unknown command %q; use -help\n", command)

@@ -1,0 +1,15 @@
+{
+  "version": "fencelab/v2",
+  "name": "Unsafe dispatch before fence acknowledgment",
+  "policy": "fenced-idempotent",
+  "protocol": "eager",
+  "lease_ms": 20,
+  "work_ms": 5,
+  "latency_ms": 1,
+  "clock_skew_ms": [0, 0],
+  "faults": [
+    { "kind": "write", "from": "worker-a", "token": 1, "action": "delay", "delay_ms": 20 },
+    { "kind": "fence", "token": 2, "action": "delay", "delay_ms": 20 }
+  ],
+  "partitions": []
+}

@@ -38,6 +38,13 @@ jobs:
         run: go test -race -count=1 ./...
       - name: Seeded regression exploration
         run: go run ./cmd/fencelab check -start-seed 0 -seeds 1000
+      - name: Transport and counterexample replay
+        shell: bash
+        run: |
+          go run ./cmd/fencelab network -file examples/barrier.json
+          go run ./cmd/fencelab search -file examples/eager.json -witness counterexample.json
+          go run ./cmd/fencelab replay -file counterexample.json
+          go run ./cmd/fencelab search -file examples/barrier.json
 
   browser:
     name: Chromium / desktop and mobile

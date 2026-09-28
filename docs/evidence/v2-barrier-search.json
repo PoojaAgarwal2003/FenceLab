@@ -1,0 +1,19 @@
+{
+  "model": "fencelab/v2",
+  "status": "exhausted",
+  "bounds": {
+    "max_states": 2000,
+    "max_depth": 80
+  },
+  "states": 19,
+  "transitions": 18,
+  "merged": 0,
+  "terminal_states": 1,
+  "incomplete_jobs": 0,
+  "depth_reached": 18,
+  "depth_cutoffs": 0,
+  "witness": null,
+  "counterexample": null,
+  "minimality": "No counterexample found.",
+  "scope": "Equal-time message/timer interleavings in one fixed, finite two-attempt scenario. Not arbitrary delays, crashes, consensus, or a distributed-systems proof."
+}

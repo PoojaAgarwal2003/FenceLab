@@ -1,5 +1,9 @@
 # Architecture: ownership is not effect safety
 
+This page describes the preserved **v1** model and original comparison API.
+For the independently versioned v2 message transport, reserved/active epoch
+distinction, and bounded exploration, see [transport and search](transport-and-search.md).
+
 ## Two layers, one deterministic model
 
 ```text
@@ -144,8 +148,13 @@ not authentication or a public-service security design.
 
 The browser applies configuration only when Run is pressed. On a request failure
 it explicitly labels any previous results as stale and disables export.
-The selected policy's cards show the **complete run outcome**; the timeline
+The comparison ledger shows each policy's **complete run outcome**; the timeline
 cursor and state boxes show the **selected trace entry**.
+The interface places conditions above the execution strip, policy comparisons
+beside it on desktop (below it on narrow screens), and a separate event journal
+underneath. Keyboard selection retains focus as policy and journal rows update;
+the selected journal event exposes `aria-current="step"`. Horizontal timeline
+and journal overflow are contained in labeled, keyboard-focusable regions.
 
 ## Files worth reading
 

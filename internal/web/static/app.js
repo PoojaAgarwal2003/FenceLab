@@ -13,7 +13,7 @@ const policyExplanations = {
   fenced: "Storage acknowledges a monotonically increasing fence before each dispatch. Old tokens are rejected, including before the new worker writes. But a new token can still repeat a logical effect after a lost acknowledgment.",
   "fenced-idempotent": "First reject obsolete tokens. Then atomically check a durable, job-scoped effect key and commit only if absent. This protects this model's storage operation, not arbitrary external APIs or all distributed executions."
 };
-const colors = { info: "#a0b2b5", fault: "#e7bf78", accepted: "#79d7cf", rejected: "#c8ee8c", deduplicated: "#c8ee8c", violation: "#f7928b" };
+const colors = { info: "#697383", fault: "#a54124", accepted: "#254ab3", rejected: "#246546", deduplicated: "#246546", violation: "#a72c3c" };
 let results = [];
 let selected = 2;
 let cursor = 0;
@@ -40,6 +40,7 @@ function displayError(message) {
 }
 
 function renderCards() {
+  const restoreFocus = $("policies").contains(document.activeElement);
   $("policies").replaceChildren();
   results.forEach((result, index) => {
     const summary = result.summary;
@@ -56,6 +57,7 @@ function renderCards() {
     bottom.append(element("span", `badge ${summary.safe ? "safe" : "unsafe"}`, summary.safe ? "SAFE IN RUN" : "VIOLATION"));
     bottom.append(element("span", "policy-note", `${summary.stale_writes} stale / ${summary.duplicate_writes} duplicate`));
     button.append(bottom);
+    if (index === selected) button.append(element("span", "selection-label", "INSPECTING THIS POLICY"));
     button.addEventListener("click", () => {
       stopPlayback();
       selected = index;
@@ -64,6 +66,7 @@ function renderCards() {
     });
     $("policies").append(button);
   });
+  if (restoreFocus) $("policies").querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
 }
 
 function svgElement(tag, attributes, text) {
@@ -73,48 +76,56 @@ function svgElement(tag, attributes, text) {
   return node;
 }
 
-function renderTimeline(result) {
-  const svg = $("timeline");
+function renderTimeline(result, svg = $("timeline"), replayCursor = cursor) {
   svg.replaceChildren();
   const lanes = Object.keys(actors);
   const trace = result.trace;
-  const end = Math.max(trace.at(-1).at_ms, result.config.lease_ms) * 1.08;
-  const x = (at) => 110 + (at / end) * 715;
-  const y = (actor) => 42 + lanes.indexOf(actor) * 35;
-  lanes.forEach((actor) => {
-    svg.append(svgElement("text", { x: 0, y: y(actor) + 4, class: "lane-label" }, actors[actor]));
-    svg.append(svgElement("line", { x1: 107, x2: 838, y1: y(actor), y2: y(actor), class: "lane-line" }));
-  });
-  const deadline = x(result.config.lease_ms);
-  svg.append(svgElement("line", { x1: deadline, x2: deadline, y1: 24, y2: 194, class: "deadline" }));
-  svg.append(svgElement("text", { x: deadline - 4, y: 14, "text-anchor": "end", class: "axis-label" }, `first lease boundary: ${result.config.lease_ms} ms`));
-  for (let tick = 0; tick <= 4; tick++) {
-    const at = Math.round((end / 4) * tick);
-    svg.append(svgElement("text", { x: x(at), y: 216, "text-anchor": "middle", class: "axis-label" }, `${at} ms`));
-  }
-  // Same-actor events at the same instant stack vertically; time is not jittered.
+  const lease = result.config ? result.config.lease_ms : result.scenario.lease_ms;
+  const end = Math.max(trace.at(-1).at_ms, lease) * 1.08;
+  // Equal-time events stack without perturbing virtual time. V2 has more
+  // messages per instant, so grow its lane spacing rather than overlap actors.
   const groups = new Map();
   for (const entry of trace) {
     const key = `${entry.actor}:${entry.at_ms}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(entry.step);
   }
+  const pitch = result.config ? 35 : Math.max(35, ...Array.from(groups.values(), group => group.length * 10 + 14));
+  const bottom = 42 + (lanes.length - 1) * pitch + pitch / 2;
+  svg.setAttribute("viewBox", `0 0 860 ${bottom + 34}`);
+  const x = (at) => 110 + (at / end) * 715;
+  const y = (actor) => 42 + lanes.indexOf(actor) * pitch;
+  lanes.forEach((actor) => {
+    svg.append(svgElement("text", { x: 0, y: y(actor) + 4, class: "lane-label" }, actors[actor]));
+    svg.append(svgElement("line", { x1: 107, x2: 838, y1: y(actor), y2: y(actor), class: "lane-line" }));
+  });
+  const deadlineTime = result.config ? lease : trace.find(entry => entry.action === "ownership_activated")?.at_ms + lease;
+  const deadline = x(deadlineTime);
+  if (Number.isFinite(deadlineTime)) {
+    svg.append(svgElement("line", { x1: deadline, x2: deadline, y1: 24, y2: bottom, class: "deadline" }));
+    svg.append(svgElement("text", { x: deadline - 4, y: 14, "text-anchor": "end", class: "axis-label" }, `first lease boundary: ${deadlineTime} ms`));
+  }
+  for (let tick = 0; tick <= 4; tick++) {
+    const at = Math.round((end / 4) * tick);
+    svg.append(svgElement("text", { x: x(at), y: bottom + 22, "text-anchor": "middle", class: "axis-label" }, `${at} ms`));
+  }
   trace.forEach((entry) => {
     const group = groups.get(`${entry.actor}:${entry.at_ms}`);
     const offset = (group.indexOf(entry.step) - (group.length - 1) / 2) * 10;
     const dot = svgElement("circle", {
-      cx: x(entry.at_ms), cy: y(entry.actor) + offset, r: entry.step === cursor ? 6.5 : 4.5,
-      fill: colors[entry.outcome], opacity: entry.step <= cursor ? 1 : 0.25,
-      class: `event-dot${entry.step === cursor ? " selected" : ""}`
+      cx: x(entry.at_ms), cy: y(entry.actor) + offset, r: entry.step === replayCursor ? 6.5 : 4.5,
+      fill: colors[entry.outcome], opacity: entry.step <= replayCursor ? 1 : 0.25,
+      class: `event-dot${entry.step === replayCursor ? " selected" : ""}`
     });
     dot.append(svgElement("title", {}, `${entry.at_ms} ms / ${actors[entry.actor]} / ${entry.action.replaceAll("_", " ")} / token ${entry.token}`));
     svg.append(dot);
   });
-  const selectedX = x(trace[cursor].at_ms);
-  svg.append(svgElement("line", { x1: selectedX, x2: selectedX, y1: 24, y2: 194, class: "cursor-line" }));
+  const selectedX = x(trace[replayCursor].at_ms);
+  svg.append(svgElement("line", { x1: selectedX, x2: selectedX, y1: 24, y2: bottom, class: "cursor-line" }));
 }
 
 function renderTrace(result) {
+  const focusedEvent = $("trace").contains(document.activeElement) ? document.activeElement.getAttribute("aria-label") : null;
   $("trace").replaceChildren();
   result.trace.forEach((entry) => {
     const row = element("tr", entry.step === cursor ? "active" : "");
@@ -122,10 +133,12 @@ function renderTrace(result) {
     const eventCell = element("td");
     const button = element("button", "trace-event", entry.action.replaceAll("_", " "));
     button.setAttribute("aria-label", `Inspect event ${entry.step + 1}: ${entry.action.replaceAll("_", " ")}`);
+    if (entry.step === cursor) button.setAttribute("aria-current", "step");
     button.addEventListener("click", () => { stopPlayback(); cursor = entry.step; renderReplay(); });
     eventCell.append(button);
     row.append(eventCell, element("td", "", `#${entry.token}`), element("td", `${entry.outcome}-text`, entry.outcome));
     $("trace").append(row);
+    if (button.getAttribute("aria-label") === focusedEvent) button.focus({ preventScroll: true });
   });
 }
 

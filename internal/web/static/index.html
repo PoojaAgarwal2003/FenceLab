@@ -3,82 +3,164 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="light">
   <meta name="description" content="A deterministic failure laboratory for leases, fencing tokens, and idempotent effects.">
-  <title>FenceLab | The ownership experiment</title>
+  <title>FenceLab | Failure investigation workbench</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/style.css">
   <script defer src="/app.js"></script>
+  <script defer src="/network.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">F/</span> FenceLab<span class="version">LAB 01</span></a>
-    <span class="local-indicator"><span aria-hidden="true"></span> LOCAL / DETERMINISTIC</span>
+  <a class="skip-link" href="#workbench">Skip to execution replay</a>
+  <header class="masthead">
+    <a class="brand" href="/" aria-label="FenceLab home"><span class="brand-mark" aria-hidden="true">F<span>/</span>L</span>FenceLab</a>
+    <span class="masthead-caption">FIELD NOTES ON DISTRIBUTED EXECUTION</span>
+    <span class="edition">LABS 01&ndash;03 <span>/</span> LOCAL SIMULATION</span>
   </header>
   <main>
-    <section class="intro">
-      <div><p class="eyebrow">DISTRIBUTED SYSTEMS, UNDER A MICROSCOPE</p><h1>A lease expires.<br><span>A worker doesn't.</span></h1><p class="lead">Replay the moment ownership changes. Discover why leases, fencing,<br class="desktop-break"> and idempotency solve three different problems.</p></div>
-      <div class="intro-note"><span class="note-number">THE OWNERSHIP EXPERIMENT</span><strong>Same fault. Three policies.</strong><p>One job. Two workers. Every write explained.<br>No cloud. No real side effects.</p></div>
+    <section class="intro" aria-labelledby="page-title">
+      <div class="intro-heading">
+        <p class="eyebrow"><span class="issue-mark">01</span> THE OWNERSHIP EXPERIMENT</p>
+        <h1 id="page-title">Ownership ends.<br><em>Execution doesn't.</em></h1>
+      </div>
+      <div class="intro-brief">
+        <p class="lead">A paused worker returns. A successful write loses its acknowledgment. Which protection actually stops the wrong effect?</p>
+        <p class="brief-caption">One job. Two workers. Three policies.<br>The same failure schedule, examined at the write boundary.</p>
+        <a class="text-link" href="#model-scope">Read the model boundaries <span aria-hidden="true">&#8599;</span></a>
+      </div>
     </section>
-    <div class="workspace">
-      <aside class="panel controls">
-        <div class="section-heading"><span class="eyebrow">EXPERIMENT SETUP</span><span class="tiny-tag">V1</span></div>
-        <form id="config">
+
+    <section class="setup" aria-labelledby="setup-title">
+      <div class="section-heading"><h2 id="setup-title"><span class="section-number">01 /</span> Set the conditions</h2><span class="eyebrow">REPEATABLE BY SEED</span></div>
+      <form id="config">
+        <div class="scenario-field">
           <label for="scenario">Failure scenario</label>
-          <select id="scenario" name="scenario">
+          <select id="scenario" name="scenario" aria-describedby="scenario-help">
             <option value="paused-worker">The paused worker</option>
             <option value="lost-ack">The lost acknowledgment</option>
             <option value="healthy">The healthy baseline</option>
           </select>
-          <p id="scenario-help" class="field-help">Worker A pauses, loses its lease, then returns before Worker B writes.</p>
+        </div>
+        <div>
           <label for="seed">Schedule seed</label>
           <input id="seed" name="seed" type="number" value="7" min="-9007199254740991" max="9007199254740991" step="1" required>
+        </div>
+        <div>
           <label for="lease">Lease duration <span>virtual ms</span></label>
           <input id="lease" name="lease_ms" type="number" value="100" min="20" max="10000" step="1" required>
-          <button id="run" class="primary" type="submit">Run comparison <span aria-hidden="true">&#8594;</span></button>
-        </form>
+        </div>
+        <button id="run" class="primary" type="submit">Run comparison <span aria-hidden="true">&#8594;</span></button>
+      </form>
+      <div class="setup-notes">
+        <p id="scenario-help" class="field-help">Worker A pauses, loses its lease, then returns before Worker B writes.</p>
         <p id="status" class="status" role="status" aria-live="polite">Preparing experiment...</p>
-        <div id="error" class="error" role="alert" hidden></div>
-        <div class="divider"></div>
-        <p class="eyebrow">WHAT WE CHECK</p>
-        <div class="invariant"><span>01</span><div><strong>No stale write</strong><p>A superseded attempt must not commit.</p></div></div>
-        <div class="invariant"><span>02</span><div><strong>One logical effect</strong><p>Retries must not repeat a committed effect.</p></div></div>
-        <div class="model-note"><strong>A model, not a cluster.</strong><p>Virtual time, one authoritative scheduler, and atomic storage operations. Seed exploration is not a proof of all possible failures.</p></div>
-      </aside>
-      <div class="experiment">
-        <section aria-labelledby="comparison-title">
-          <div class="section-heading"><h2 id="comparison-title">Three ways to handle the same failure</h2><span class="eyebrow">SELECT A POLICY TO INSPECT</span></div>
-          <div id="policies" class="policy-grid"></div>
-        </section>
-        <section class="panel replay-panel" aria-labelledby="replay-title">
-          <div class="section-heading"><div><p class="eyebrow">EVENT REPLAY</p><h2 id="replay-title">Fencing + idempotency</h2></div><span id="replay-verdict" class="badge"></span></div>
-          <div class="topology" aria-label="Model components">
-            <div><small>COORDINATION</small><strong>Lease authority</strong><span id="authority-state">epoch --</span></div>
-            <span class="connector" aria-hidden="true">&#8594;</span>
-            <div><small>EXECUTION</small><strong id="owner-state">Worker --</strong><span>at-least-once attempts</span></div>
-            <span class="connector" aria-hidden="true">&#8594;</span>
-            <div><small>EFFECT BOUNDARY</small><strong>Side-effect store</strong><span id="store-state">fence -- / writes --</span></div>
-          </div>
-          <div class="timeline-wrap"><svg id="timeline" viewBox="0 0 860 228" role="img" aria-label="Virtual-time swimlane diagram for the selected policy"></svg></div>
-          <p class="scroll-hint">Swipe the timeline to inspect later events. All times are virtual.</p>
-          <div class="legend"><span><i class="dot info"></i>Protocol</span><span><i class="dot fault"></i>Fault</span><span><i class="dot accepted"></i>Commit</span><span><i class="dot rejected"></i>Rejected / deduplicated</span><span><i class="dot violation"></i>Violation</span></div>
-          <div class="playback">
+      </div>
+      <div id="error" class="error" role="alert" hidden></div>
+    </section>
+
+    <div id="workbench" class="workbench" tabindex="-1">
+      <section class="replay-panel" aria-labelledby="replay-title">
+        <div class="section-heading replay-heading">
+          <div><p class="eyebrow">02 / FOLLOW THE EXECUTION</p><h2 id="replay-title">Fencing + idempotency</h2></div>
+          <span id="replay-verdict" class="badge"></span>
+        </div>
+        <div class="timeline-caption"><span>EXECUTION STRIP</span><span>VIRTUAL TIME &rarr;</span></div>
+        <div class="timeline-wrap" tabindex="0" role="region" aria-label="Scrollable execution timeline"><svg id="timeline" viewBox="0 0 860 228" role="img" aria-label="Virtual-time swimlane diagram for the selected policy"></svg></div>
+        <p class="scroll-hint">Scroll horizontally to inspect the full timeline. All times are virtual.</p>
+        <div class="legend"><span><i class="dot info"></i>Protocol</span><span><i class="dot fault"></i>Fault</span><span><i class="dot accepted"></i>Commit</span><span><i class="dot rejected"></i>Rejected / deduplicated</span><span><i class="dot violation"></i>Violation</span></div>
+        <div class="playback">
+          <div class="transport">
             <button id="previous" class="icon-button" aria-label="Previous event" disabled>&#8592;</button>
             <button id="play" class="secondary" disabled>Replay</button>
             <button id="next" class="icon-button" aria-label="Next event" disabled>&#8594;</button>
-            <input id="cursor" type="range" min="0" max="0" value="0" aria-label="Replay event" disabled>
-            <output id="clock">t = 0 ms</output>
           </div>
+          <input id="cursor" type="range" min="0" max="0" value="0" aria-label="Replay event" disabled>
+          <output id="clock">t = 0 ms</output>
+        </div>
+        <div class="event-observation">
+          <span class="eyebrow">AT THE CURSOR</span>
           <div id="explanation" class="explanation" aria-live="polite">Run a comparison to inspect a trace.</div>
-        </section>
-        <section class="panel evidence" aria-labelledby="evidence-title">
-          <div class="section-heading"><div><p class="eyebrow">NO INVISIBLE MAGIC</p><h2 id="evidence-title">The write boundary is the safety boundary.</h2></div><button id="download" class="secondary" disabled>Export JSON</button></div>
+        </div>
+        <div class="topology" aria-label="Model state at selected event">
+          <div><small>AUTHORITY</small><strong>Lease authority</strong><span id="authority-state">epoch --</span></div>
+          <div><small>CURRENT OWNER</small><strong id="owner-state">Worker --</strong><span>at-least-once attempts</span></div>
+          <div><small>EFFECT STORE</small><strong>Side-effect store</strong><span id="store-state">fence -- / writes --</span></div>
+        </div>
+      </section>
+      <aside class="comparison" aria-labelledby="comparison-title">
+        <div class="section-heading"><div><p class="eyebrow">03 / COMPARE THE OUTCOMES</p><h2 id="comparison-title">Same fault. <span>Different protection.</span></h2></div></div>
+        <p class="comparison-help">Select a policy to inspect its execution. Counts below describe the complete run.</p>
+        <div class="ledger-heading"><span>POLICY</span><span>EFFECTS</span></div>
+        <div id="policies" class="policy-ledger"></div>
+        <div class="finding">
+          <p class="eyebrow">WHY THIS RESULT?</p>
           <p id="policy-explanation">Fencing rejects old owners. A durable idempotency key prevents repeated effects.</p>
-          <div class="trace-scroll"><table><thead><tr><th>Virtual time</th><th>Actor</th><th>Event</th><th>Token</th><th>Outcome</th></tr></thead><tbody id="trace"></tbody></table></div>
-        </section>
-      </div>
+        </div>
+      </aside>
     </div>
-    <footer><span>FenceLab / deterministic failure laboratory</span><span>All times are simulated. No throughput or production-safety claims.</span></footer>
+
+    <section class="evidence" aria-labelledby="evidence-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">04 / EXAMINE THE RECORD</p><h2 id="evidence-title">The event journal</h2></div>
+        <button id="download" class="secondary" disabled>Export JSON</button>
+      </div>
+      <p class="journal-caption">Every state transition, in order. Select an event to move the replay cursor.</p>
+      <div class="trace-scroll" tabindex="0" role="region" aria-label="Scrollable event journal">
+        <table><thead><tr><th scope="col">Virtual time</th><th scope="col">Actor</th><th scope="col">Event</th><th scope="col">Token</th><th scope="col">Outcome</th></tr></thead><tbody id="trace"></tbody></table>
+      </div>
+    </section>
+    <section class="network-lab" aria-labelledby="network-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">MILESTONES 02 + 03 / MESSAGE FAULTS &amp; BOUNDED SEARCH</p><h2 id="network-title">Break the delivery order.</h2></div>
+        <span class="badge">MODEL V2</span>
+      </div>
+      <p class="journal-caption">Edit a versioned scenario, delay the storage barrier, or explore equal-time deliveries. v1 above is unchanged. A bounded search is not a general correctness proof.</p>
+      <div class="network-grid">
+        <div class="scenario-editor">
+          <label for="network-example">Load an experiment</label>
+          <select id="network-example" disabled>
+            <option value="custom" disabled>Custom / imported scenario</option>
+            <option value="barrier">Correct protocol / delayed fence</option>
+            <option value="eager">Unsafe protocol / dispatch before barrier</option>
+            <option value="partition">Partition the acknowledgment link, then heal</option>
+            <option value="lost-result">Lost result + duplicated write</option>
+          </select>
+          <label for="network-json">Scenario JSON <span>strict, max 64 KiB</span></label>
+          <textarea id="network-json" rows="18" spellcheck="false" aria-describedby="network-rules" disabled></textarea>
+          <p id="network-rules" class="field-help">Ordered faults: the first matching rule wins. Delay reorders messages; duplicate adds one copy; partitions hold directed-link deliveries until healing. Worker clock skew never controls lease expiry.</p>
+          <div class="search-bounds">
+            <div><label for="max-states">Maximum states</label><input id="max-states" type="number" value="2000" min="1" max="10000" step="1"></div>
+            <div><label for="max-depth">Maximum depth</label><input id="max-depth" type="number" value="80" min="1" max="128" step="1"></div>
+          </div>
+          <div class="network-actions">
+            <button id="network-run" class="primary" type="button" disabled>Run transport</button>
+            <button id="network-search" class="secondary" type="button" disabled>Find counterexample</button>
+          </div>
+          <label for="replay-file">Replay an exported witness</label>
+          <input id="replay-file" type="file" accept=".json,application/json">
+        </div>
+        <div class="network-results">
+          <p id="network-status" class="status" role="status" aria-live="polite">Loading scenario examples...</p>
+          <div id="network-error" class="error" role="alert" hidden></div>
+          <p id="search-report" class="search-report">Run a transport scenario or start bounded exploration.</p>
+          <p class="field-help">Barrier protocol: reserve token &rarr; install fence &rarr; receive acknowledgment &rarr; activate ownership. A blocked barrier sacrifices availability; it does not authorize a replacement early.</p>
+          <div class="timeline-wrap" tabindex="0" role="region" aria-label="Scrollable v2 delivery timeline"><svg id="network-timeline" viewBox="0 0 860 228" role="img" aria-label="Message-delivery and fault timeline"></svg></div>
+          <p class="scroll-hint">Scroll horizontally for later deliveries. Marks stack within their actor's lane; time is not shifted.</p>
+          <div class="playback"><label for="network-cursor">Trace event</label><input id="network-cursor" type="range" min="0" max="0" value="0" disabled><output id="network-clock">t = 0 ms</output></div>
+          <div id="network-explanation" class="event-observation" aria-live="polite">No transport execution selected.</div>
+          <div class="network-actions"><button id="network-export" class="secondary" type="button" disabled>Export replay</button></div>
+          <div class="trace-scroll" tabindex="0" role="region" aria-label="V2 event journal"><table><thead><tr><th scope="col">Time</th><th scope="col">Actor</th><th scope="col">Event</th><th scope="col">Token</th></tr></thead><tbody id="network-trace"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+    <section id="model-scope" class="model-scope" aria-labelledby="scope-title">
+      <div><p class="eyebrow">READ THE FINE PRINT</p><h2 id="scope-title">A model. <span>Not a cluster.</span></h2></div>
+      <div><h3>What we check</h3><p><strong>No stale writes:</strong> a superseded attempt must not commit. <strong>One logical effect:</strong> retries must not repeat an already committed effect.</p></div>
+      <div><h3>What we assume</h3><p>One authoritative scheduler, virtual time, and atomic storage operations. Storage acknowledges a new fence before dispatch. Durability is assumed, not implemented.</p></div>
+      <div><h3>What this isn't</h3><p>Milestones 1&ndash;3 are local models. v2 explores equal-time deliveries within a fixed two-attempt scenario, not arbitrary failures. Durable recovery, real processes, and scheduler workloads remain future work.</p></div>
+    </section>
+    <footer><span>FenceLab <span class="footer-divider">/</span> Failure investigation workbench</span><span>Deterministic by design. All displayed times are simulated.</span></footer>
   </main>
 </body>
 </html>

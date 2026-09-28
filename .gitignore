@@ -7,6 +7,7 @@
 *.test
 *.prof
 /coverage.out
+/counterexample.json
 .env
 .env.*
 !.env.example

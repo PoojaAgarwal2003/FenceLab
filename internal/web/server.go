@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/PoojaAgarwal2003/FenceLab/internal/model"
 	"github.com/PoojaAgarwal2003/FenceLab/internal/sim"
 )
 
@@ -36,6 +37,7 @@ func loopbackAddress(address string) bool {
 
 func Handler(logger *log.Logger) http.Handler {
 	slots := make(chan struct{}, 4)
+	modelSlots := make(chan struct{}, 1)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -53,12 +55,18 @@ func Handler(logger *log.Logger) http.Handler {
 			writeJSON(w, http.StatusForbidden, map[string]string{"error": "cross-site requests are not allowed"}, logger)
 			return
 		}
+		if r.URL.Path == "/api/v2/run" || r.URL.Path == "/api/v2/search" || r.URL.Path == "/api/v2/replay" {
+			modelRequest(w, r, modelSlots, logger)
+			return
+		}
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "only GET is supported"}, logger)
 			return
 		}
 		switch r.URL.Path {
+		case "/api/v2/examples":
+			writeJSON(w, http.StatusOK, model.Examples(), logger)
 		case "/api/health":
 			writeJSON(w, http.StatusOK, map[string]string{"status": "ok", "model": sim.ModelVersion}, logger)
 		case "/api/compare":
@@ -86,10 +94,13 @@ func Handler(logger *log.Logger) http.Handler {
 				return
 			}
 			writeJSON(w, http.StatusOK, results, logger)
-		case "/", "/app.js", "/style.css":
+		case "/", "/app.js", "/network.js", "/style.css":
 			name, contentType := "index.html", "text/html; charset=utf-8"
 			if r.URL.Path == "/app.js" {
 				name, contentType = "app.js", "text/javascript; charset=utf-8"
+			}
+			if r.URL.Path == "/network.js" {
+				name, contentType = "network.js", "text/javascript; charset=utf-8"
 			}
 			if r.URL.Path == "/style.css" {
 				name, contentType = "style.css", "text/css; charset=utf-8"

@@ -16,7 +16,17 @@ difference at the write boundary.
 [Architecture](docs/architecture.md) · [Next milestones](docs/roadmap.md) ·
 [Recorded evidence](docs/evidence.md)
 
-![FenceLab running the paused-worker experiment](docs/images/laboratory-desktop.png)
+**Milestones 1-3 are implemented:** the original ownership experiment,
+programmable message faults, and bounded delivery-order exploration.
+This remains a local simulation, not a distributed production scheduler.
+
+![FenceLab's failure investigation workbench](docs/images/workbench-desktop.png)
+
+The interface is organized like an investigation notebook: set conditions in a
+horizontal control strip, follow the execution timeline, compare the policy
+ledger, then inspect the event journal. A light paper palette, serif headings,
+and blue/rust annotations distinguish it from a conventional dark dashboard.
+See the [mobile layout](docs/images/workbench-mobile.png).
 
 ## The experiment
 
@@ -65,7 +75,7 @@ go run ./cmd/fencelab serve
 ```
 
 Open **http://127.0.0.1:8091**. Choose a scenario, run the comparison, and select
-a policy card. Step through the trace, scrub virtual time, or export the
+a policy in the comparison ledger. Step through the trace, scrub virtual time, or export the
 comparison as JSON. Ctrl+C stops the server.
 
 No database, Docker, Node.js, API key, or paid service is required to run it.
@@ -118,9 +128,41 @@ three fixed templates, **not every possible interleaving**. See
 The browser/API restrict seeds to JavaScript's exact integer range. Replay
 requires the same config **and model version** (`fencelab/v1`).
 
+## Programmable faults and shortest counterexamples
+
+The second laboratory on the page uses **`fencelab/v2`**. Edit the scenario JSON,
+delay/drop/duplicate messages, or partition a directed link and heal it later.
+Fence installation and its acknowledgment now travel independently.
+
+```sh
+go run ./cmd/fencelab network -file examples/eager.json
+go run ./cmd/fencelab search -file examples/eager.json -max-states 2000 -max-depth 80 -witness counterexample.json
+go run ./cmd/fencelab replay -file counterexample.json
+go run ./cmd/fencelab search -file examples/barrier.json -max-states 2000 -max-depth 80
+```
+
+The unsafe example produces a **9-decision shortest failure prefix**: the old
+worker writes after replacement activation but before the replacement fence
+arrives. The same-time write race can also take a safe order. Breadth-first
+search explores enabled delivery/timer orders instead of relying on a lucky seed.
+The corrected example exhausts its fixed scenario without a violation.
+
+**Important:** v2 distinguishes a *reserved token* from *active ownership*.
+The barrier protocol activates ownership only after storage acknowledgment.
+It does not magically prevent old writes between token reservation and fence
+installation. Its stale-write oracle uses the active epoch; this distinction
+is explicitly versioned rather than silently changing v1.
+
+State/depth cutoffs are **inconclusive**, not "safe." Witnesses are shortest
+event prefixes within one fixed scenario, not globally minimal fault files.
+Export/import them directly in the browser. See
+[transport semantics, scenario format, search scope, and CLI exit codes](docs/transport-and-search.md).
+
+![The v2 fault transport and replay laboratory](docs/images/transport-desktop.png)
+
 ## Engineering underneath
 
-- **Discrete-event min-heap:** events are ordered by `(virtual time, insertion
+- **v1 discrete-event min-heap:** events are ordered by `(virtual time, insertion
   sequence)`. Same-time ordering is explicit and replayable.
 - **Monotonic ownership epochs:** an old attempt remains identifiable after
   reassignment. The scheduler cannot recall a request already sent to storage.
@@ -132,6 +174,11 @@ requires the same config **and model version** (`fencelab/v1`).
   with token, current epoch, owner, and write count.
 - **Matched experiments:** policies use the same generated schedule; changing
   protection does not silently change fault timings.
+- **v2 programmable transport:** envelopes, directed partition intervals,
+  message faults, authoritative timers, and separately delivered fence barriers.
+- **Bounded BFS and canonical state hashing:** explore equal-time event choices,
+  merge equivalent states, and reconstruct shortest violating prefixes through
+  parent links.
 
 The model avoids goroutine scheduling, sleeps, wall-clock reads, and global
 random state. The real HTTP interface has bounded admission, explicit overload
@@ -165,10 +212,11 @@ evidence expectations.
 
 ## Where this goes next
 
-The working **first milestone** is the deterministic ownership experiment.
-The [roadmap](docs/roadmap.md) builds toward programmable partitions and message
-faults, bounded state-space exploration, crash-safe persistence, and a
-multi-process implementation checked against the model.
+**Milestones 1-3 of 6 are complete; the full advanced project is not finished.**
+The [roadmap](docs/roadmap.md) next adds crash-safe persistence, a multi-process
+implementation checked against the model, and multi-job scheduler workloads.
+Those capabilities remain future work. No actual disk durability or real
+distributed deployment is claimed by either current simulation model.
 
 ## Attribution and licensing
 

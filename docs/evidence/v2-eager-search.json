@@ -1,0 +1,705 @@
+{
+  "model": "fencelab/v2",
+  "status": "counterexample",
+  "bounds": {
+    "max_states": 2000,
+    "max_depth": 80
+  },
+  "states": 12,
+  "transitions": 13,
+  "merged": 1,
+  "terminal_states": 0,
+  "incomplete_jobs": 0,
+  "depth_reached": 9,
+  "depth_cutoffs": 0,
+  "witness": {
+    "version": "fencelab/v2",
+    "scenario": {
+      "version": "fencelab/v2",
+      "name": "Unsafe dispatch before fence acknowledgment",
+      "policy": "fenced-idempotent",
+      "protocol": "eager",
+      "lease_ms": 20,
+      "work_ms": 5,
+      "latency_ms": 1,
+      "clock_skew_ms": [
+        0,
+        0
+      ],
+      "faults": [
+        {
+          "kind": "write",
+          "from": "worker-a",
+          "to": "",
+          "token": 1,
+          "action": "delay",
+          "delay_ms": 20
+        },
+        {
+          "kind": "fence",
+          "from": "",
+          "to": "",
+          "token": 2,
+          "action": "delay",
+          "delay_ms": 20
+        }
+      ],
+      "partitions": []
+    },
+    "decisions": [
+      1,
+      2,
+      4,
+      5,
+      7,
+      3,
+      10,
+      12,
+      6
+    ]
+  },
+  "counterexample": {
+    "model": "fencelab/v2",
+    "scenario": {
+      "version": "fencelab/v2",
+      "name": "Unsafe dispatch before fence acknowledgment",
+      "policy": "fenced-idempotent",
+      "protocol": "eager",
+      "lease_ms": 20,
+      "work_ms": 5,
+      "latency_ms": 1,
+      "clock_skew_ms": [
+        0,
+        0
+      ],
+      "faults": [
+        {
+          "kind": "write",
+          "from": "worker-a",
+          "to": "",
+          "token": 1,
+          "action": "delay",
+          "delay_ms": 20
+        },
+        {
+          "kind": "fence",
+          "from": "",
+          "to": "",
+          "token": 2,
+          "action": "delay",
+          "delay_ms": 20
+        }
+      ],
+      "partitions": []
+    },
+    "trace": [
+      {
+        "step": 0,
+        "at_ms": 0,
+        "actor": "authority",
+        "action": "epoch_issued",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Reserve a new token. Issuance alone does not activate ownership in the barrier protocol.",
+        "state": {
+          "epoch": 0,
+          "owner": "",
+          "storage_fence": 0,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 1,
+        "at_ms": 0,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 1,
+        "outcome": "info",
+        "detail": "fence: authority -\u003e store; key invoice-001; sender clock 0 (not lease authority).",
+        "state": {
+          "epoch": 0,
+          "owner": "",
+          "storage_fence": 0,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 2,
+        "at_ms": 0,
+        "actor": "authority",
+        "action": "ownership_activated",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Ownership becomes active; start the authoritative lease and dispatch this attempt.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 0,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 3,
+        "at_ms": 0,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 1,
+        "outcome": "info",
+        "detail": "dispatch: authority -\u003e worker-a; key invoice-001; sender clock 0 (not lease authority).",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 0,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 4,
+        "at_ms": 1,
+        "actor": "network",
+        "action": "message_delivered",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Message #1 fence: authority -\u003e store; key invoice-001.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 0,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 5,
+        "at_ms": 1,
+        "actor": "store",
+        "action": "fence_installed",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Raise the storage fence monotonically. Acknowledgment travels separately.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 6,
+        "at_ms": 1,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 1,
+        "outcome": "info",
+        "detail": "fence-ack: store -\u003e authority; key invoice-001; sender clock 1 (not lease authority).",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 7,
+        "at_ms": 1,
+        "actor": "network",
+        "action": "message_delivered",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Message #2 dispatch: authority -\u003e worker-a; key invoice-001.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 8,
+        "at_ms": 1,
+        "actor": "worker-a",
+        "action": "started",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Dispatch received; duplicate dispatches for this token are ignored.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 9,
+        "at_ms": 2,
+        "actor": "network",
+        "action": "message_delivered",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Message #4 fence-ack: store -\u003e authority; key invoice-001.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 10,
+        "at_ms": 6,
+        "actor": "worker-a",
+        "action": "work",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Request the same logical effect using this attempt's token.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 11,
+        "at_ms": 6,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 1,
+        "outcome": "info",
+        "detail": "write: worker-a -\u003e store; key invoice-001; sender clock 6 (not lease authority).",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 12,
+        "at_ms": 6,
+        "actor": "network",
+        "action": "fault_delay",
+        "token": 1,
+        "outcome": "fault",
+        "detail": "worker-a -\u003e store: delay write; delay 20 ms.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 13,
+        "at_ms": 16,
+        "actor": "worker-a",
+        "action": "retry",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Request the same logical effect using this attempt's token.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 14,
+        "at_ms": 16,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 1,
+        "outcome": "info",
+        "detail": "write: worker-a -\u003e store; key invoice-001; sender clock 16 (not lease authority).",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 15,
+        "at_ms": 16,
+        "actor": "network",
+        "action": "fault_delay",
+        "token": 1,
+        "outcome": "fault",
+        "detail": "worker-a -\u003e store: delay write; delay 20 ms.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 16,
+        "at_ms": 20,
+        "actor": "authority",
+        "action": "lease_expired",
+        "token": 1,
+        "outcome": "fault",
+        "detail": "Expiry cannot recall in-flight messages; at most two attempts are modeled.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 17,
+        "at_ms": 20,
+        "actor": "authority",
+        "action": "epoch_issued",
+        "token": 2,
+        "outcome": "info",
+        "detail": "Reserve a new token. Issuance alone does not activate ownership in the barrier protocol.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 18,
+        "at_ms": 20,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 2,
+        "outcome": "info",
+        "detail": "fence: authority -\u003e store; key invoice-001; sender clock 20 (not lease authority).",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 19,
+        "at_ms": 20,
+        "actor": "network",
+        "action": "fault_delay",
+        "token": 2,
+        "outcome": "fault",
+        "detail": "authority -\u003e store: delay fence; delay 20 ms.",
+        "state": {
+          "epoch": 1,
+          "owner": "worker-a",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 20,
+        "at_ms": 20,
+        "actor": "authority",
+        "action": "ownership_activated",
+        "token": 2,
+        "outcome": "info",
+        "detail": "Ownership becomes active; start the authoritative lease and dispatch this attempt.",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 21,
+        "at_ms": 20,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 2,
+        "outcome": "info",
+        "detail": "dispatch: authority -\u003e worker-b; key invoice-001; sender clock 20 (not lease authority).",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 22,
+        "at_ms": 21,
+        "actor": "network",
+        "action": "message_delivered",
+        "token": 2,
+        "outcome": "info",
+        "detail": "Message #10 dispatch: authority -\u003e worker-b; key invoice-001.",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 23,
+        "at_ms": 21,
+        "actor": "worker-b",
+        "action": "started",
+        "token": 2,
+        "outcome": "info",
+        "detail": "Dispatch received; duplicate dispatches for this token are ignored.",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 24,
+        "at_ms": 26,
+        "actor": "worker-b",
+        "action": "work",
+        "token": 2,
+        "outcome": "info",
+        "detail": "Request the same logical effect using this attempt's token.",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 25,
+        "at_ms": 26,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 2,
+        "outcome": "info",
+        "detail": "write: worker-b -\u003e store; key invoice-001; sender clock 26 (not lease authority).",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 26,
+        "at_ms": 27,
+        "actor": "network",
+        "action": "message_delivered",
+        "token": 1,
+        "outcome": "info",
+        "detail": "Message #6 write: worker-a -\u003e store; key invoice-001.",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 0,
+          "completed": false
+        }
+      },
+      {
+        "step": 27,
+        "at_ms": 27,
+        "actor": "store",
+        "action": "effect_committed",
+        "token": 1,
+        "outcome": "violation",
+        "detail": "Atomic effect committed; any result message is a separate delivery.",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 1,
+          "completed": false
+        }
+      },
+      {
+        "step": 28,
+        "at_ms": 27,
+        "actor": "network",
+        "action": "message_sent",
+        "token": 1,
+        "outcome": "info",
+        "detail": "result: store -\u003e authority; key invoice-001; sender clock 27 (not lease authority).",
+        "state": {
+          "epoch": 2,
+          "owner": "worker-b",
+          "storage_fence": 1,
+          "writes": 1,
+          "completed": false
+        }
+      }
+    ],
+    "effects": [
+      {
+        "at_ms": 27,
+        "worker": "worker-a",
+        "token": 1,
+        "current_epoch": 2,
+        "key": "invoice-001"
+      }
+    ],
+    "violations": [
+      {
+        "step": 27,
+        "at_ms": 27,
+        "kind": "stale-write",
+        "detail": "Committed effect violates stale-write at the active-ownership boundary."
+      }
+    ],
+    "summary": {
+      "accepted_writes": 1,
+      "stale_writes": 1,
+      "duplicate_writes": 0,
+      "rejected_writes": 0,
+      "deduplicated": 0,
+      "completed": false,
+      "safe": false
+    },
+    "pending": [
+      {
+        "at_ms": 37,
+        "message": {
+          "id": 8,
+          "kind": "write",
+          "from": "worker-a",
+          "to": "store",
+          "token": 1,
+          "key": "invoice-001"
+        }
+      },
+      {
+        "at_ms": 41,
+        "message": {
+          "id": 9,
+          "kind": "fence",
+          "from": "authority",
+          "to": "store",
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      {
+        "at_ms": 40,
+        "message": {
+          "id": 11,
+          "kind": "expire",
+          "from": "authority",
+          "to": "authority",
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      {
+        "at_ms": 27,
+        "message": {
+          "id": 13,
+          "kind": "write",
+          "from": "worker-b",
+          "to": "store",
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      {
+        "at_ms": 36,
+        "message": {
+          "id": 14,
+          "kind": "retry",
+          "from": "worker-b",
+          "to": "worker-b",
+          "token": 2,
+          "key": "invoice-001"
+        }
+      },
+      {
+        "at_ms": 28,
+        "message": {
+          "id": 15,
+          "kind": "result",
+          "from": "store",
+          "to": "authority",
+          "token": 1,
+          "key": "invoice-001"
+        }
+      }
+    ],
+    "halt_reason": "prefix",
+    "replay": {
+      "version": "fencelab/v2",
+      "scenario": {
+        "version": "fencelab/v2",
+        "name": "Unsafe dispatch before fence acknowledgment",
+        "policy": "fenced-idempotent",
+        "protocol": "eager",
+        "lease_ms": 20,
+        "work_ms": 5,
+        "latency_ms": 1,
+        "clock_skew_ms": [
+          0,
+          0
+        ],
+        "faults": [
+          {
+            "kind": "write",
+            "from": "worker-a",
+            "to": "",
+            "token": 1,
+            "action": "delay",
+            "delay_ms": 20
+          },
+          {
+            "kind": "fence",
+            "from": "",
+            "to": "",
+            "token": 2,
+            "action": "delay",
+            "delay_ms": 20
+          }
+        ],
+        "partitions": []
+      },
+      "decisions": [
+        1,
+        2,
+        4,
+        5,
+        7,
+        3,
+        10,
+        12,
+        6
+      ]
+    }
+  },
+  "minimality": "Shortest violating event-decision prefix for this scenario (breadth-first search); no irrelevant suffix. Fault rules are not minimized.",
+  "scope": "Equal-time message/timer interleavings in one fixed, finite two-attempt scenario. Not arbitrary delays, crashes, consensus, or a distributed-systems proof."
+}

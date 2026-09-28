@@ -90,3 +90,66 @@ test("bounded input remains readable without page overflow or script errors", as
   expect(errors).toEqual([]);
   expect(await page.locator("#timeline circle").count()).toBeGreaterThan(10);
 });
+
+test("workbench uses a light execution-first layout rather than the old card dashboard", async ({ page }) => {
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ownership ends.Execution doesn't.");
+  expect(await page.locator("body").evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgb(245, 243, 237)");
+  await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute("content", "light");
+  await expect(page.locator(".policy-grid, .controls, .topbar")).toHaveCount(0);
+  const setup = await page.locator(".setup").boundingBox();
+  const replay = await page.locator(".replay-panel").boundingBox();
+  const ledger = await page.locator(".comparison").boundingBox();
+  expect(setup.y + setup.height).toBeLessThan(replay.y);
+  if (page.viewportSize().width > 850) {
+    expect(ledger.x).toBeGreaterThanOrEqual(replay.x + replay.width - 1);
+    expect(Math.abs(ledger.y - replay.y)).toBeLessThan(1);
+  } else {
+    expect(ledger.y).toBeGreaterThanOrEqual(replay.y + replay.height - 1);
+  }
+  const policies = await page.locator(".policy-card").all();
+  for (let i = 1; i < policies.length; i++) {
+    const previous = await policies[i - 1].boundingBox();
+    const current = await policies[i].boundingBox();
+    expect(current.y).toBeGreaterThanOrEqual(previous.y + previous.height - 1);
+  }
+});
+
+test("keyboard navigation retains focus when selecting policies and journal events", async ({ page }) => {
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Skip to execution replay" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#workbench")).toBeFocused();
+  const policy = page.getByRole("button", { name: "Inspect Lease only", exact: true });
+  await policy.focus();
+  await page.keyboard.press("Enter");
+  await expect(policy).toBeFocused();
+  await expect(policy).toHaveAttribute("aria-pressed", "true");
+  const event = page.getByRole("button", { name: "Inspect event 1: lease granted", exact: true });
+  await event.focus();
+  await page.keyboard.press("Enter");
+  await expect(event).toBeFocused();
+  await expect(event).toHaveAttribute("aria-current", "step");
+  await expect(page.locator("#cursor")).toHaveValue("0");
+  await expect(page.locator("#explanation")).toContainText("lease granted");
+});
+
+test("narrow phones, tablets and wide screens keep controls and overflow regions usable", async ({ page }) => {
+  for (const width of [320, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    for (const selector of ["#scenario", "#seed", "#lease", "#run", "#play", "#download"]) {
+      const box = await page.locator(selector).boundingBox();
+      expect(box.width).toBeGreaterThan(30);
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+    }
+    const region = page.getByRole("region", { name: "Scrollable execution timeline" });
+    await region.evaluate(node => { node.scrollLeft = node.scrollWidth; });
+    expect(await region.evaluate(node => node.scrollLeft + node.clientWidth >= node.scrollWidth - 1)).toBe(true);
+    if (width === 320) {
+      const journal = page.getByRole("region", { name: "Scrollable event journal" });
+      await journal.evaluate(node => { node.scrollLeft = node.scrollWidth; });
+      expect(await journal.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+    }
+  }
+});

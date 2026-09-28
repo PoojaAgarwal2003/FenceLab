@@ -1,0 +1,15 @@
+{
+  "version": "fencelab/v2",
+  "name": "Lost result and duplicate writes",
+  "policy": "fenced-idempotent",
+  "protocol": "barrier",
+  "lease_ms": 20,
+  "work_ms": 5,
+  "latency_ms": 1,
+  "clock_skew_ms": [0, 0],
+  "faults": [
+    { "kind": "result", "token": 1, "action": "drop", "delay_ms": 0 },
+    { "kind": "write", "token": 2, "action": "duplicate", "delay_ms": 0 }
+  ],
+  "partitions": []
+}
