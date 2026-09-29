@@ -31,6 +31,13 @@ jobs:
         shell: bash
         run: test -z "$(gofmt -l cmd internal)"
       - run: go test -count=1 ./...
+        env:
+          FENCELAB_CLUSTER_EVIDENCE: ${{ runner.temp }}/cluster-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: replicated-execution-${{ matrix.os }}
+          path: ${{ runner.temp }}/cluster-evidence.json
+          retention-days: 7
       - run: go vet ./...
       - run: go build ./...
       - name: Race detection
@@ -61,6 +68,48 @@ jobs:
           name: measured-workloads-${{ matrix.os }}
           path: workload-*-report.json
           retention-days: 7
+
+  containers:
+    name: Linux reference deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Prepare isolated credentials
+        run: sh deploy/prepare.sh
+      - name: Build and exercise persisted execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          dc() { docker compose --env-file deploy/.env -f deploy/compose.json "$@"; }
+          client() { dc run --rm admin cluster-client -credentials /credentials -endpoints https://node1:8100,https://node2:8100,https://node3:8100 "$@"; }
+          dc config --quiet
+          dc build
+          dc up -d --wait --wait-timeout 90
+          client -operation enqueue -file /job.json
+          completed=0
+          for attempt in $(seq 1 30); do
+            result=$(client -operation status -key invoice-2026-001)
+            if printf '%s' "$result" | python3 -c 'import json,sys; j=json.load(sys.stdin)["job"]; sys.exit(0 if j["status"]=="completed" else 1)'; then
+              completed=1
+              break
+            fi
+            sleep 1
+          done
+          test "$completed" = 1
+          dc down
+          dc up -d --wait --wait-timeout 90
+          client -operation status -key invoice-2026-001 | python3 -c 'import hashlib,json,sys; j=json.load(sys.stdin)["job"]; assert j["status"]=="completed" and j["result"]==hashlib.sha256(j["payload"].encode()).hexdigest()'
+      - name: Container logs
+        if: always()
+        run: docker compose --env-file deploy/.env -f deploy/compose.json logs --no-color --tail 200
+      - name: Stop owned deployment
+        if: always()
+        run: docker compose --env-file deploy/.env -f deploy/compose.json down
 
   browser:
     name: Chromium / desktop and mobile

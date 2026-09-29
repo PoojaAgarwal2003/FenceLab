@@ -6,3 +6,7 @@
 *.html text eol=lf
 *.js text eol=lf
 *.css text eol=lf
+*.sh text eol=lf
+# Upstream notices retain their original bytes, including whitespace.
+licenses/** -text -whitespace
+licenses/manifest.json text eol=lf !whitespace

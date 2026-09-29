@@ -1,0 +1,209 @@
+[
+  {
+    "component": "github.com/boltdb/bolt",
+    "version": "v1.3.1",
+    "source": "https://proxy.golang.org/github.com/boltdb/bolt/@v/v1.3.1.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_boltdb_bolt_v1.3.1/LICENSE",
+        "sha256": "c15d721c37e277a11584547de6d618541501f7aa10c4e32a945a4f9ff36cb0f6"
+      }
+    ]
+  },
+  {
+    "component": "github.com/fatih/color",
+    "version": "v1.19.0",
+    "source": "https://proxy.golang.org/github.com/fatih/color/@v/v1.19.0.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_fatih_color_v1.19.0/LICENSE.md",
+        "sha256": "de95ed802d2f90e3c72cb3c9a927cca5f2aec234a3ef1250232db0f8178b2d93"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/go-hclog",
+    "version": "v1.6.3",
+    "source": "https://proxy.golang.org/github.com/hashicorp/go-hclog/@v/v1.6.3.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_go-hclog_v1.6.3/LICENSE",
+        "sha256": "2a820e13f7f30e2312a2a83ba91c90afce637b090efd823e65f0c8d4cb71fc45"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/go-immutable-radix",
+    "version": "v1.3.1",
+    "source": "https://proxy.golang.org/github.com/hashicorp/go-immutable-radix/@v/v1.3.1.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_go-immutable-radix_v1.3.1/LICENSE",
+        "sha256": "60222c28c1a7f6a92c7df98e5c5f4459e624e6e285e0b9b94467af5f6ab3343d"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/go-metrics",
+    "version": "v0.7.0",
+    "source": "https://proxy.golang.org/github.com/hashicorp/go-metrics/@v/v0.7.0.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_go-metrics_v0.7.0/LICENSE",
+        "sha256": "a3b02225bcb80e2f466208dca787c847ae7d4587b0375979c33fb9cccecebe1a"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/go-msgpack/v2",
+    "version": "v2.1.5",
+    "source": "https://proxy.golang.org/github.com/hashicorp/go-msgpack/v2/@v/v2.1.5.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_go-msgpack_v2_v2.1.5/LICENSE",
+        "sha256": "65bffcb78f7d0f57b2e18dcd728d398a86a21832adb61a25c35cc7363e107d19"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/golang-lru",
+    "version": "v1.0.2",
+    "source": "https://proxy.golang.org/github.com/hashicorp/golang-lru/@v/v1.0.2.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_golang-lru_v1.0.2/LICENSE",
+        "sha256": "6c7088eb877b5d7e6e0e9d27e822ea25fcda2e83f9eba59bb5f1418a656796e0"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/raft-boltdb/v2",
+    "version": "v2.4.2",
+    "source": "https://proxy.golang.org/github.com/hashicorp/raft-boltdb/v2/@v/v2.4.2.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_raft-boltdb_v2_v2.4.2/LICENSE",
+        "sha256": "977d08f671b26f63c6e8b9783aa1dc91ba8a01afe1aa10549281a9d388749857"
+      }
+    ]
+  },
+  {
+    "component": "github.com/hashicorp/raft",
+    "version": "v1.8.0",
+    "source": "https://proxy.golang.org/github.com/hashicorp/raft/@v/v1.8.0.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_hashicorp_raft_v1.8.0/LICENSE",
+        "sha256": "cdac356782ac15f1f37b8afc2a9ed38fb8b42fe2a9b600aa88ee0f841f59be12"
+      }
+    ]
+  },
+  {
+    "component": "github.com/mattn/go-colorable",
+    "version": "v0.1.15",
+    "source": "https://proxy.golang.org/github.com/mattn/go-colorable/@v/v0.1.15.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_mattn_go-colorable_v0.1.15/LICENSE",
+        "sha256": "88a2379b3ca34bf5c57127aff9dcb802bbb60ece0805cdbda65b3bd115f971d9"
+      }
+    ]
+  },
+  {
+    "component": "github.com/mattn/go-isatty",
+    "version": "v0.0.24",
+    "source": "https://proxy.golang.org/github.com/mattn/go-isatty/@v/v0.0.24.zip",
+    "notices": [
+      {
+        "path": "licenses/go/github.com_mattn_go-isatty_v0.0.24/LICENSE",
+        "sha256": "08eab1118c80885fa1fa6a6dd7303f65a379fcb3733e063d20d1bbc2c76e6fa1"
+      }
+    ]
+  },
+  {
+    "component": "go.etcd.io/bbolt",
+    "version": "v1.4.1",
+    "source": "https://proxy.golang.org/go.etcd.io/bbolt/@v/v1.4.1.zip",
+    "notices": [
+      {
+        "path": "licenses/go/go.etcd.io_bbolt_v1.4.1/LICENSE",
+        "sha256": "c15d721c37e277a11584547de6d618541501f7aa10c4e32a945a4f9ff36cb0f6"
+      }
+    ]
+  },
+  {
+    "component": "golang.org/x/sys",
+    "version": "v0.48.0",
+    "source": "https://proxy.golang.org/golang.org/x/sys/@v/v0.48.0.zip",
+    "notices": [
+      {
+        "path": "licenses/go/golang.org_x_sys_v0.48.0/LICENSE",
+        "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+      },
+      {
+        "path": "licenses/go/golang.org_x_sys_v0.48.0/PATENTS",
+        "sha256": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc"
+      }
+    ]
+  },
+  {
+    "component": "Go standard library",
+    "version": "1.27.1",
+    "source": "https://go.dev/dl/go1.27.1.src.tar.gz",
+    "notices": [
+      {
+        "path": "licenses/go/Go_standard_library_1.27.1/LICENSE",
+        "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+      },
+      {
+        "path": "licenses/go/Go_standard_library_1.27.1/PATENTS",
+        "sha256": "96f408bfae65bf137fc2525d3ecb030271c50c1e90799f87abf8846d8dd505cc"
+      }
+    ]
+  },
+  {
+    "component": "@playwright/test",
+    "version": "1.63.0",
+    "source": "https://registry.npmjs.org/@playwright/test/-/test-1.63.0.tgz",
+    "notices": [
+      {
+        "path": "licenses/test-tools/_playwright_test_1.63.0/LICENSE",
+        "sha256": "45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb"
+      },
+      {
+        "path": "licenses/test-tools/_playwright_test_1.63.0/NOTICE",
+        "sha256": "6d602191187b35b9b01d2cffa01c8469c2c8d9de8a96f1bf868e0f264f51c81d"
+      }
+    ]
+  },
+  {
+    "component": "playwright",
+    "version": "1.63.0",
+    "source": "https://registry.npmjs.org/playwright/-/playwright-1.63.0.tgz",
+    "notices": [
+      {
+        "path": "licenses/test-tools/playwright_1.63.0/LICENSE",
+        "sha256": "45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb"
+      },
+      {
+        "path": "licenses/test-tools/playwright_1.63.0/NOTICE",
+        "sha256": "6d602191187b35b9b01d2cffa01c8469c2c8d9de8a96f1bf868e0f264f51c81d"
+      }
+    ]
+  },
+  {
+    "component": "playwright-core",
+    "version": "1.63.0",
+    "source": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.63.0.tgz",
+    "notices": [
+      {
+        "path": "licenses/test-tools/playwright-core_1.63.0/LICENSE",
+        "sha256": "45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb"
+      },
+      {
+        "path": "licenses/test-tools/playwright-core_1.63.0/NOTICE",
+        "sha256": "6d602191187b35b9b01d2cffa01c8469c2c8d9de8a96f1bf868e0f264f51c81d"
+      }
+    ]
+  }
+]

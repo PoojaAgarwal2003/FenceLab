@@ -110,6 +110,7 @@ func TestDeterministicExpiryAndSnapshotValidation(t *testing.T) {
 			apply(t, f, Command{Operation: "enqueue", NowMS: 1000, Spec: Spec{Key: fmt.Sprint(i), MaxAttempts: 2}})
 			apply(t, f, Command{Operation: "claim", NowMS: 1000, Worker: "worker" + fmt.Sprint(i), Request: "one", LeaseMS: 1000})
 		}
+
 		apply(t, f, Command{Operation: "claim", NowMS: 2000, Worker: "new-worker", Request: "two", LeaseMS: 1000})
 	}
 	a, _ := left.Snapshot()
@@ -128,5 +129,43 @@ func TestDeterministicExpiryAndSnapshotValidation(t *testing.T) {
 	data, _ := json.Marshal(state)
 	if err := right.Restore(io.NopCloser(bytes.NewReader(data))); err == nil {
 		t.Fatal("invalid snapshot accepted")
+	}
+}
+
+func TestHistoricalReceiptSnapshotIntegrity(t *testing.T) {
+	f := NewFSM()
+	for _, key := range []string{"first", "second"} {
+		apply(t, f, Command{Operation: "enqueue", NowMS: 1000, Spec: Spec{Key: key, MaxAttempts: 1}})
+		r := apply(t, f, Command{Operation: "claim", NowMS: 1000, Worker: "worker1", Request: key, LeaseMS: 1000})
+		if r.Job == nil {
+			t.Fatal(r)
+		}
+		apply(t, f, Command{Operation: "complete", NowMS: 1000, Worker: "worker1", Key: key, Generation: 1, Result: Digest("")})
+	}
+	snap, err := f.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := snap.(*snapshot).data
+	restored := NewFSM()
+	if err := restored.Restore(io.NopCloser(bytes.NewReader(data))); err != nil {
+		t.Fatal(err)
+	}
+	if r := apply(t, restored, Command{Operation: "claim", NowMS: 1000, Worker: "worker1", Request: "first", LeaseMS: 1000}); r.Status != "retired" {
+		t.Fatal(r)
+	}
+	var state State
+	if err := json.Unmarshal(data, &state); err != nil {
+		t.Fatal(err)
+	}
+	delete(state.Receipts, "worker1:first")
+	missing, _ := json.Marshal(state)
+	if err := restored.Restore(io.NopCloser(bytes.NewReader(missing))); err == nil {
+		t.Fatal("missing historical receipt accepted")
+	}
+	state.Receipts["worker1:forged"] = ClaimRecord{Request: "forged", Key: "second", Generation: 1}
+	duplicate, _ := json.Marshal(state)
+	if err := restored.Restore(io.NopCloser(bytes.NewReader(duplicate))); err == nil {
+		t.Fatal("duplicate generation accepted in place of missing history")
 	}
 }

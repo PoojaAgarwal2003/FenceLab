@@ -11,6 +11,13 @@ Milestone 6 is a separate [measured scheduler workload](scheduler-workloads.md):
 bounded FIFO admission/selection, serial durable effects, elapsed measurements,
 and a journal-validated artifact. Its clocks never enter either simulation.
 
+Milestones 7-10 add a separately versioned
+[replicated execution mode](replicated-execution.md): three real mTLS Raft voters,
+per-node bbolt persistence, independently polling remote workers, and atomic
+generation/key/result transitions. Its deployment and trust boundaries are in
+the [operator guide](deployment.md). The original diagrams and API below still
+describe v1, not the autonomous cluster.
+
 ## Two layers, one deterministic model
 
 ```text

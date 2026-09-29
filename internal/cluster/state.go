@@ -315,12 +315,14 @@ func (f *FSM) Restore(reader io.ReadCloser) (err error) {
 		return fmt.Errorf("invalid queue snapshot header")
 	}
 	positions := map[uint64]bool{}
+	totalClaims := 0
 	for key, job := range state.Jobs {
 		if key != job.Key || job.validate() != nil || job.Sequence == 0 || job.Sequence > state.Sequence ||
 			positions[job.Sequence] || job.Generation < 0 || job.Generation > job.MaxAttempts {
 			return fmt.Errorf("invalid snapshot job %q", key)
 		}
 		positions[job.Sequence] = true
+		totalClaims += job.Generation
 		if job.Generation > 0 && (!identifier.MatchString(job.Worker) || job.DeadlineMS <= 0) {
 			return fmt.Errorf("missing ownership")
 		}
@@ -359,6 +361,10 @@ func (f *FSM) Restore(reader io.ReadCloser) (err error) {
 			return fmt.Errorf("missing durable claim receipt")
 		}
 	}
+	if len(state.Receipts) != totalClaims {
+		return fmt.Errorf("snapshot is missing historical claim receipts")
+	}
+	claims := map[string]bool{}
 	for key, claim := range state.Receipts {
 		job, found := state.Jobs[claim.Key]
 		parts := bytes.SplitN([]byte(key), []byte(":"), 2)
@@ -369,6 +375,11 @@ func (f *FSM) Restore(reader io.ReadCloser) (err error) {
 		if _, found := state.Workers[string(parts[0])]; !found {
 			return fmt.Errorf("receipt has no worker identity")
 		}
+		generationKey := fmt.Sprintf("%s:%d", claim.Key, claim.Generation)
+		if claims[generationKey] || (claim.Generation == job.Generation && string(parts[0]) != job.Worker) {
+			return fmt.Errorf("duplicate or mismatched claim generation")
+		}
+		claims[generationKey] = true
 	}
 	candidate := &FSM{state: state}
 	counts := candidate.counts()

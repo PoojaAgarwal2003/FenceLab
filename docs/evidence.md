@@ -268,3 +268,58 @@ These measurements include a **clean ledger close/reopen**, while the in-memory
 queue survives. They do not measure process-crash queue recovery, power-loss
 durability, external transactions, or an autonomous distributed scheduler.
 See the [measurement and scheduling contract](scheduler-workloads.md).
+
+## Replicated execution extension
+
+Recorded **2026-09-29 at 17:00:10 UTC**, Windows/amd64, Go 1.27.1, from
+`TestClusterProcesses` in the working tree based on `f0065a2`, including the
+snapshot-history integrity checks delivered with this evidence. The test builds
+its own CLI and runs actual localhost TLS connections and independent child
+processes; it does not use the simulated fault transport. The machine is shared,
+and this is a correctness experiment, not a throughput or availability benchmark.
+
+Raw artifact: [cluster-execution.json](evidence/cluster-execution.json).
+
+| Deliberate event | Observed outcome |
+|---|---|
+| Start three voters with separate persistent directories | A real Raft leader and quorum accept a keyed job |
+| Kill worker1 after its generation-1 claim | Worker2 reclaims after the 2-second lease and commits generation 2 |
+| Submit worker1's delayed generation-1 completion | Explicit `stale` rejection; no replacement of the committed result |
+| Submit eight more jobs and run two workers | Two simultaneous leases observed; both worker identities commit jobs |
+| Attempt worker enqueue and worker identity spoofing | Both rejected by the certificate-bound API |
+| Kill the current leader | The surviving quorum retains all nine results; duplicate submission returns the existing job |
+| Kill another voter | The minority cannot acknowledge the new submission |
+| Restart all three voters from their original directories | Nine completed/retained jobs; zero pending, leased or exhausted |
+
+The interrupted job has a declared 500 ms computation delay; the eight parallel
+jobs each have 400 ms. All nine result digests were independently recomputed
+from their payloads. Worker1 restarts during the experiment; "two workers" means
+two identities and at most two simultaneous worker processes, not two total
+process launches. Error replies' default counter fields are not authoritative
+queue snapshots; inspect the final successful status response for counts.
+
+Reproduce on Windows with a new output path:
+
+```powershell
+$env:FENCELAB_CLUSTER_EVIDENCE = Join-Path (Get-Location) "cluster-evidence.json"
+go test ./cmd/fencelab -run "^TestClusterProcesses$" -count=1 -v
+Remove-Item Env:FENCELAB_CLUSTER_EVIDENCE
+```
+
+The environment variable is optional; without it the test validates behavior
+without writing a report. This report is a bounded summary of assertions in
+the integration test, not a deterministic replay or a browser-import artifact.
+
+The full Go tests, vet, Windows CLI build and all **50 existing Chromium cases**
+passed after the extension. The original 9,000-run v1 report and both v2 search
+reports deep-compare identically with the preserved artifacts. Earlier images
+are unchanged. Additional tests cover certificate trust separation, role/input
+boundaries, historical claim replay, snapshot loss/duplication of receipts,
+and the byte integrity/coverage of copied dependency license notices.
+
+A static Linux/amd64 cross-build passed. Compose JSON isolation/mount structure
+and PowerShell preparation syntax were checked, but **Docker and Podman were
+unavailable**, so no local container run, native Linux run, race result, hosted
+deployment, power-loss durability or production certification is claimed.
+CI now contains actual container submit/restart checks; configured CI is not a
+claim that those future jobs passed. See [operations and limitations](deployment.md).

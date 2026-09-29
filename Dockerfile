@@ -13,5 +13,6 @@ ARG RUN_GID=65532
 COPY --from=build /fencelab /fencelab
 COPY --from=build --chown=${RUN_UID}:${RUN_GID} /empty /data
 COPY THIRD_PARTY_NOTICES.md /THIRD_PARTY_NOTICES.md
+COPY licenses /licenses
 USER ${RUN_UID}:${RUN_GID}
 ENTRYPOINT ["/fencelab"]

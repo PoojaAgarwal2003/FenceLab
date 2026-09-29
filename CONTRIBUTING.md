@@ -38,6 +38,15 @@ development dependencies. Follow the [README](README.md#development).
   counts to actual WAL responses. Never label virtual time as benchmark latency.
 - A workload's clean ledger reopen keeps the queue in memory; it is not a
   forced-process crash, persistent queue, or wall-clock fairness guarantee.
+- Keep `internal/cluster` separate from the original lab formats. Apply time is
+  leader-supplied and replicated; map iteration must never determine queue order.
+- Persist every successful claim receipt, not merely the latest per worker.
+  An ancient delayed request must not acquire a different job after restart.
+- Commit result, generation check and job completion in one replicated
+  transition. Do not claim atomicity for unrelated services or external effects.
+- Keep API and peer trust separate. Bind workers to verified certificate
+  identities, and never give health probes job privileges. Never add an
+  insecure TLS fallback or treat lack of quorum as a successful mutation.
 
 ## Before a commit
 
@@ -61,6 +70,25 @@ replace native lock/recovery or race testing. Curated reports under
 Browser success-path tests share a single bounded model/artifact executor and run
 with one Playwright worker. Explicit overload tests still assert 429 behavior;
 do not mask admission failures with automatic success-shaped retries.
+
+`TestClusterProcesses` builds and owns three real coordinator processes plus two
+worker identities, then exercises lease recovery, concurrent claims, leader
+loss, minority rejection and full disk restart. Set `FENCELAB_CLUSTER_EVIDENCE`
+to a **new** JSON path to capture its actual report; it refuses to overwrite.
+That format is not accepted by the old browser artifact inspector.
+
+When changing Go dependencies, run `go list -deps` for Windows/amd64 and
+Linux/amd64, copy each linked module's actual license/notice/patent files from
+its downloaded source, and update `licenses/manifest.json` and
+`THIRD_PARTY_NOTICES.md`. Keep original notice bytes; `.gitattributes` disables
+line-ending conversion under `licenses/`. `TestDependencyNoticeInventory`
+checks artifact hashes and current-platform dependency coverage. Update Go
+runtime and Playwright notices when those versions change as well. Do not
+infer the project license from a dependency license.
+
+The container CI job generates ephemeral credentials, builds the non-root
+image, submits a job, and checks its result after stopping/restarting the entire
+topology. Local absence of Docker is not evidence that this job passed.
 
 Use small commits tied to a real behavior, check, or documentation change.
 Keep benchmark and model claims tied to reproducible evidence. Preserve

@@ -29,8 +29,8 @@ exploring arbitrary delivery times are not implemented.
 
 [WAL and crash boundaries](durable-recovery.md), [process bridge](process-bridge.md),
 [recorded evidence](evidence.md), CLI `durability`/`recover`/`bridge`, and a browser
-report inspector. The bridge controls virtual delivery to real actors; autonomous
-network services and wall-clock fault timing are not implemented.
+report inspector. The bridge controls virtual delivery to real actors; it does
+not acquire autonomous network semantics from the separate extension below.
 
 ## Completed milestone 6 artifacts
 
@@ -45,13 +45,27 @@ strict priority intentionally has none under continuous high-priority arrivals.
 Completion distributions use actual elapsed time, not v1/v2 event timestamps.
 The recovery probe closes/reopens the effect ledger, not a durable queue.
 
-## Beyond the planned milestones
+## Implemented execution extension
 
-Production release engineering, an independently durable queue, concurrent
-workers, replicated coordination, autonomous networking, and external effect
-transactions are separate design projects, not implied by completing this
-laboratory. Authentication, public hosting, and project license selection remain
-outside the implemented scope.
+These are four additional repository milestones, not retroactive changes to
+the original six laboratories.
+
+| Milestone | Implemented scope | Acceptance and limits |
+|---|---|---|
+| **7. Persistent replicated queue** | Deterministic keyed job FSM, weighted selection, durable receipts, three-voter HashiCorp Raft, bbolt, snapshots and separate peer PKI | Real network failover, majority-only acknowledgments, disk restart; fixed membership and finite retention |
+| **8. Concurrent remote workers** | Role-checked HTTPS/mTLS APIs, independent worker processes, ambiguous-response retries, worker identity binding and generation-fenced results | Actual worker/leader kills, simultaneous leases, stale rejection and full-cluster recovery; SHA-256 workload, not arbitrary external effects |
+| **9. Deployment and operations** | Non-root scratch image, isolated Compose networks, per-node volumes, scoped credentials, health-only probes, resource limits and operator runbook | Linux static cross-build and configuration checks passed locally; Docker unavailable, runtime smoke is configured in CI, not claimed as observed |
+| **10. Evidence and attribution** | Actual process evidence, preserved model regressions, full dependency notices/provenance, integrity checks, CI and scope documentation | Repository acceptance checked on Windows; native Linux/race/container results await their runners |
+
+See [queue/API contracts](replicated-execution.md),
+[deployment and recovery procedures](deployment.md),
+[recorded execution evidence](evidence.md#replicated-execution-extension),
+and [upstream notices](../THIRD_PARTY_NOTICES.md).
+
+Production SLO certification, public hosting, multi-host operations, membership
+changes, automated certificate lifecycle, online backups, unlimited key
+retention, external effect transactions and FenceLab's own license selection
+remain explicitly outside this reference deployment's completed scope.
 
 ## Boundaries to keep
 
@@ -62,5 +76,5 @@ outside the implemented scope.
 - Virtual time is not a latency benchmark.
 - Atomic in-memory operations are not evidence of crash durability.
 - A project demo is not a promise of production-safe exactly-once execution.
-- Keep the entire core project local and free to run. Containers and hosted
-  infrastructure are optional future tooling, not prerequisites.
+- Keep the entire core project local and free to run. Containers are optional
+  deployment tooling; paid hosted infrastructure is not a prerequisite.

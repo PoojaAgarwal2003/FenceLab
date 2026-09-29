@@ -1,0 +1,148 @@
+{
+  "version": "fencelab/cluster-evidence-v1",
+  "recorded": "2026-09-29T17:00:10Z",
+  "environment": "windows/amd64 go1.27.1",
+  "voters": 3,
+  "worker_processes": 2,
+  "observed_simultaneous_claims": 2,
+  "recovered_worker_job": {
+    "key": "interrupted",
+    "payload": "durable-work",
+    "class": 0,
+    "work_ms": 500,
+    "max_attempts": 3,
+    "status": "completed",
+    "sequence": 2,
+    "generation": 2,
+    "worker": "worker2",
+    "deadline_ms": 1790701204683,
+    "result": "cc8ea9441e1fe033097046bd7e03d236367e5cf7ccaa8f7a146cc87c74b44fbb"
+  },
+  "old_generation_completion": {
+    "status": "stale",
+    "error": "ownership generation changed",
+    "counts": {
+      "pending": 0,
+      "leased": 0,
+      "completed": 0,
+      "exhausted": 0,
+      "retained": 0
+    }
+  },
+  "parallel_jobs": [
+    {
+      "key": "parallel-0",
+      "payload": "0",
+      "class": 0,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 3,
+      "generation": 1,
+      "worker": "worker1",
+      "deadline_ms": 1790701205253,
+      "result": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "key": "parallel-1",
+      "payload": "1",
+      "class": 1,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 4,
+      "generation": 1,
+      "worker": "worker2",
+      "deadline_ms": 1790701205396,
+      "result": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    {
+      "key": "parallel-2",
+      "payload": "2",
+      "class": 0,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 5,
+      "generation": 1,
+      "worker": "worker1",
+      "deadline_ms": 1790701205662,
+      "result": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    {
+      "key": "parallel-3",
+      "payload": "3",
+      "class": 1,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 6,
+      "generation": 1,
+      "worker": "worker2",
+      "deadline_ms": 1790701206211,
+      "result": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce"
+    },
+    {
+      "key": "parallel-4",
+      "payload": "4",
+      "class": 0,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 7,
+      "generation": 1,
+      "worker": "worker2",
+      "deadline_ms": 1790701205805,
+      "result": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a"
+    },
+    {
+      "key": "parallel-5",
+      "payload": "5",
+      "class": 1,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 8,
+      "generation": 1,
+      "worker": "worker1",
+      "deadline_ms": 1790701206478,
+      "result": "ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d"
+    },
+    {
+      "key": "parallel-6",
+      "payload": "6",
+      "class": 0,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 9,
+      "generation": 1,
+      "worker": "worker1",
+      "deadline_ms": 1790701206069,
+      "result": "e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683"
+    },
+    {
+      "key": "parallel-7",
+      "payload": "7",
+      "class": 1,
+      "work_ms": 400,
+      "max_attempts": 3,
+      "status": "completed",
+      "sequence": 10,
+      "generation": 1,
+      "worker": "worker2",
+      "deadline_ms": 1790701206618,
+      "result": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451"
+    }
+  ],
+  "after_quorum_loss_and_full_restart": {
+    "status": "ok",
+    "counts": {
+      "pending": 0,
+      "leased": 0,
+      "completed": 9,
+      "exhausted": 0,
+      "retained": 9
+    }
+  }
+}

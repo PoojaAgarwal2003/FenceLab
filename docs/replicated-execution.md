@@ -73,7 +73,8 @@ cross-region tuning, and production SLO certification are not supplied.
 
 Milestone 8 adds actual HTTPS worker processes, not the controlled virtual-time
 bridge. Each API connection requires a verified client certificate. The leaf's
-signed organizational-unit role is `admin` or `worker`. Admins submit/query jobs;
+signed organizational-unit role is `admin`, `worker`, or health-only `probe`.
+Admins submit/query jobs;
 workers claim/complete only as their certificate common name. A worker cannot
 claim another identity, enqueue work, or use its API certificate on Raft.
 
@@ -86,8 +87,9 @@ operations concurrently and returns 429 when busy. File/network failures are
 not converted to acknowledged results.
 
 TLS 1.3 is mandatory. Bootstrap PKI creates two independent issuers, three node
-identities, two worker identities, and one admin identity. Certificates expire
-after 90 days and cover `node1`/`node2`/`node3`, `localhost`, and `127.0.0.1`.
+identities, two worker identities, one admin identity, and one health-only probe
+identity. Certificates expire after 90 days and cover `node1`/`node2`/`node3`,
+`localhost`, and `127.0.0.1`.
 These are local bootstrap credentials; use an organization-managed PKI with the
 correct host SANs for real hosts. Keep issuer private keys offline. On Windows,
 restrict the directory ACL yourself; POSIX mode 0600 is not a Windows ACL.

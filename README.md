@@ -20,7 +20,15 @@ difference at the write boundary.
 programmable faults, bounded exploration, process-crash ledger recovery,
 a four-process bridge, and measured multi-job scheduler workloads.
 The models control delivery timing; the separate workload runner measures
-actual elapsed time. This is not a production scheduler or an autonomous cluster.
+actual elapsed time. Those modes are not an autonomous cluster or a production
+scheduler.
+
+**The separate replicated execution extension is now implemented:** a persistent
+job queue, three real Raft voters, concurrent mTLS workers, and a container
+reference deployment. It does not change those original laboratory semantics.
+See [replicated execution](docs/replicated-execution.md) and
+[deployment/operations](docs/deployment.md). Production certification and a live
+hosted deployment are not claimed.
 
 ![FenceLab's failure investigation workbench](docs/images/workbench-desktop.png)
 
@@ -241,6 +249,43 @@ See the [mobile view](docs/images/workload-mobile.png),
 
 ## Engineering underneath
 
+### Persistent jobs, concurrent workers, real coordination
+
+```text
+Admin CLI -- mTLS --> Leader API --> replicated queue/result state
+                          |               |
+Workers  <-- mTLS ---------+        Raft quorum: 2 of 3
+  |                                       |
+  +-- generation-fenced completion --> per-voter bbolt + snapshots
+```
+
+This mode builds the queue, weighted selection, leases, claim replay protection,
+and keyed result ledger in FenceLab. It reuses HashiCorp Raft for consensus and
+bbolt for persistence rather than presenting a simulated election as consensus.
+Worker processes independently poll over HTTPS and compute bounded SHA-256 jobs.
+Claims, retries, results, and historical receipts survive full-cluster restart.
+Only the current generation can commit; a minority cannot acknowledge work.
+
+The actual-process experiment kills a worker, observes generation-2 recovery,
+rejects the old completion, observes two simultaneous leases, kills a leader,
+removes quorum, and restarts all three voters from disk. Its
+[recorded JSON](docs/evidence/cluster-execution.json) reports nine retained,
+completed results, including eight jobs executed across both workers.
+
+Run directly with [the CLI guide](docs/replicated-execution.md), or use
+[the Compose deployment](docs/deployment.md) with separate persistent volumes
+and role-scoped credentials. Everything runs locally without paid APIs.
+The original dashboard remains a laboratory inspector, not a cluster admin UI.
+The cluster evidence JSON is a separate format, not a browser-import artifact.
+
+**Limits:** three fixed voters; 4096 retained keys, 256 outstanding jobs and
+64 worker identities; no lease renewal, key garbage collection, membership
+changes or external-effect transaction. Recomputations can occur after lease
+loss; only the committed ledger result is deduplicated. Container assets and a
+CI smoke job are supplied; local Docker execution was unavailable.
+
+### Preserved laboratory internals
+
 - **v1 discrete-event min-heap:** events are ordered by `(virtual time, insertion
   sequence)`. Same-time ordering is explicit and replayable.
 - **Monotonic ownership epochs:** an old attempt remains identifiable after
@@ -294,17 +339,21 @@ browser's OS dependencies. The suite starts and stops its own real Go server on
 port `18091`, exercises desktop/mobile Chromium, and saves demonstration
 screenshots under ignored `web-test-results/`.
 
-CI runs Go checks on Windows/Linux, race detection on Linux, and Chromium tests.
+CI is configured for Go checks on Windows/Linux, race detection on Linux,
+Chromium tests, and a container execution/restart smoke job.
 The [contributor guide](CONTRIBUTING.md) defines the model's invariants and
 evidence expectations.
 
 ## Completion and scope
 
-**All 6 of 6 planned laboratory milestones are complete.** The
+**The original six laboratory milestones and four execution-extension milestones
+are implemented in the repository.** The
 [roadmap](docs/roadmap.md) records acceptance evidence and remaining boundaries.
-The process bridge remains controlled and local; the workload queue is not durable
-or replicated. Production readiness, public deployment, concurrent distributed
-workers, and external exactly-once effects are not claimed.
+The old process bridge remains controlled and its workload queue remains in
+memory. The new `cluster-*` mode is independently persistent and replicated.
+Production readiness, public deployment, container-runtime verification on this
+machine, and external exactly-once effects are not claimed. Upstream dependency
+notices are included; the owner's project-license decision remains separate.
 
 ## Attribution and licensing
 
