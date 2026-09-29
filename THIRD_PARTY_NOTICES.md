@@ -1,8 +1,21 @@
 # Third-party components and references
 
-FenceLab's application uses Go's standard library and browser-native HTML,
-CSS, JavaScript, and SVG. It has no third-party Go module dependency, bundled
-frontend framework, external font, icon pack, or hosted API.
+FenceLab's original laboratories use Go's standard library and browser-native
+HTML, CSS, JavaScript, and SVG. The separate replicated execution mode also uses
+the following pinned upstream implementations. There is no bundled frontend
+framework, external font, icon pack, or hosted API.
+
+## Replicated execution dependencies
+
+| Component | Role | Upstream terms |
+|---|---|---|
+| `github.com/hashicorp/raft` v1.8.0 | Consensus, elections, replication and snapshots | [MPL-2.0](https://github.com/hashicorp/raft/blob/v1.8.0/LICENSE) |
+| `github.com/hashicorp/raft-boltdb/v2` v2.4.2 | Durable Raft log/stable-store adapter | [MPL-2.0](https://github.com/hashicorp/raft-boltdb/blob/v2.4.2/LICENSE) |
+| `go.etcd.io/bbolt` v1.4.1 | Synchronous embedded database | [MIT](https://github.com/etcd-io/bbolt/blob/v1.4.1/LICENSE) |
+
+`go.mod` and `go.sum` pin the complete resolved Go dependency graph. Upstream
+implementations are imported without modifying their source. Their licenses
+apply to their components; they do not automatically license FenceLab's own code.
 
 ## Build and test dependencies
 
