@@ -4,7 +4,9 @@ export default defineConfig({
   testDir: "./tests",
   outputDir: "./web-test-results",
   fullyParallel: true,
-  workers: 2,
+  // All tests share one server whose model/artifact executor has one slot.
+  // Concurrent success-path tests would correctly receive 429 from each other.
+  workers: 1,
   retries: 0,
   reporter: "list",
   use: {

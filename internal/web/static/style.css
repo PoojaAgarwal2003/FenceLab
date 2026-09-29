@@ -250,6 +250,20 @@ textarea { width: 100%; resize: vertical; min-height: 260px; border: 1px solid #
 .artifact-instructions pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.7 var(--mono); padding: 12px; border-left: 2px solid var(--blue); background: var(--blue-wash); }
 .artifact-instructions input { max-width: 100%; }
 .artifact-commit { background: var(--blue-wash); border-left: 3px solid var(--blue); }
+.workload-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 18px 0; border-block: 1px solid var(--line); }
+.workload-metrics dt { font: 10px/1.6 var(--mono); color: var(--muted); }
+.workload-metrics dd { margin: 4px 0 0; font: 22px/1.4 var(--serif); overflow-wrap: anywhere; }
+.workload-metrics > div:last-child dd { font-size: 17px; }
+.workload-caption { margin-top: 18px; }
+.workload-outcomes { display: flex; height: 24px; gap: 2px; margin-bottom: 8px; }
+.workload-outcomes span { flex-basis: 0; }
+.workload-completed { background: var(--blue); }
+.workload-exhausted { background: var(--rust); }
+.workload-rejected { background: #b6b4ab; }
+.workload-dispatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(9px, 1fr)); gap: 3px; margin-bottom: 8px; }
+.workload-dispatches span { height: 18px; }
+.workload-high { background: var(--blue); }
+.workload-ordinary { background: var(--rust); }
 @media (max-width: 900px) {
   .artifact-grid { grid-template-columns: 1fr; }
   .artifact-inspector { border-left: 0; border-top: 1px solid var(--line); }

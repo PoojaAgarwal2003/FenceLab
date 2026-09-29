@@ -157,19 +157,20 @@
     </section>
     <section class="artifact-lab" aria-labelledby="artifact-title">
       <div class="section-heading">
-        <div><p class="eyebrow">MILESTONES 04 + 05 / CROSS THE PROCESS BOUNDARY</p><h2 id="artifact-title">What survives the crash?</h2></div>
-        <span class="badge">REAL PROCESSES / CONTROLLED DELIVERY</span>
+        <div><p class="eyebrow">MILESTONES 04 &ndash; 06 / BEYOND THE MODEL</p><h2 id="artifact-title">Durability. Pressure. Evidence.</h2></div>
+        <span class="badge">REAL EFFECTS / EXPLICIT BOUNDARIES</span>
       </div>
-      <p class="journal-caption">Kill a writer at its commit boundary, or deliver a modeled failure to four independent processes. Import the resulting JSON to inspect the recovered ledger and response history.</p>
+      <p class="journal-caption">Kill a writer, deliver a modeled failure to four processes, or overload a bounded scheduler. Import a report to inspect what happened. Workload durations are measured elapsed time; process-bridge delivery times remain virtual.</p>
       <div class="artifact-flow" aria-label="Durable commit sequence"><span>Reserve epoch</span><span>Install fence + sync</span><span>Acknowledge / activate</span><span>Commit effect + key</span><span>Kill / recover / retry</span></div>
       <div class="artifact-grid">
         <div class="artifact-instructions">
           <p class="eyebrow">RUN FROM YOUR TERMINAL</p>
-          <h3>Choose a real boundary</h3>
-          <p>From the repository, generate either report. Each data directory must be new.</p>
+          <h3>Choose an experiment</h3>
+          <p>From the repository, generate a report. Each data directory must be new.</p>
           <pre><code>go run ./cmd/fencelab durability -dir crash-lab &gt; crash-report.json</code></pre>
           <pre><code>go run ./cmd/fencelab bridge -replay docs/evidence/v2-counterexample.json -dir process-lab &gt; process-report.json</code></pre>
-          <label for="artifact-file">Import crash or process report <span>max 64 KiB</span></label>
+          <pre><code>go run ./cmd/fencelab workload -file examples/workload-overload.json -dir workload-overload &gt; workload-report.json</code></pre>
+          <label for="artifact-file">Import crash, process or workload report <span>max 64 KiB</span></label>
           <input id="artifact-file" type="file" accept=".json,application/json" aria-describedby="artifact-limit">
           <p id="artifact-limit" class="field-help">The browser checks the artifact; it never launches processes or reads your WAL files. Imported JSON is evidence of internal consistency, not authenticated provenance.</p>
         </div>
@@ -181,7 +182,24 @@
             <h3 id="artifact-heading"></h3>
             <p id="artifact-summary" class="search-report"></p>
             <p id="artifact-recovery" class="field-help"></p>
-            <div class="trace-scroll" tabindex="0" role="region" aria-label="Crash or process evidence journal">
+            <div id="workload-metrics" hidden>
+              <dl class="workload-metrics">
+                <div><dt>Acknowledged / second</dt><dd id="workload-throughput"></dd></div>
+                <div><dt>Batch elapsed</dt><dd id="workload-elapsed"></dd></div>
+                <div><dt>Outstanding high water</dt><dd id="workload-capacity"></dd></div>
+                <div><dt>Completion p50 / p95 / p99</dt><dd id="workload-latency"></dd></div>
+              </dl>
+              <p class="eyebrow">OFFERED JOB OUTCOMES / NOT EFFECT COUNTS</p>
+              <div id="workload-outcomes" class="workload-outcomes" role="img"></div>
+              <p id="workload-outcome-labels" class="field-help"></p>
+              <p class="eyebrow workload-caption">ACTUAL DISPATCH ORDER / EACH CELL IS ONE ATTEMPT</p>
+              <div id="workload-dispatches" class="workload-dispatches" role="img"></div>
+              <p class="field-help">Blue: high priority. Rust: ordinary. This is dispatch order, not a time-scaled chart.</p>
+              <p id="workload-fairness" class="field-help workload-caption"></p>
+              <p id="workload-wait" class="field-help"></p>
+              <p class="field-help workload-caption">Completion percentiles include acknowledged jobs only. Exhausted jobs may already have durable effects. One serial worker; no persistent queue or cluster throughput claim.</p>
+            </div>
+            <div class="trace-scroll" tabindex="0" role="region" aria-label="Imported evidence journal">
               <table><thead id="artifact-columns"></thead><tbody id="artifact-rows"></tbody></table>
             </div>
           </div>
@@ -192,9 +210,9 @@
       <div><p class="eyebrow">READ THE FINE PRINT</p><h2 id="scope-title">A model. <span>Not a cluster.</span></h2></div>
       <div><h3>What we check</h3><p><strong>No stale writes:</strong> a superseded attempt must not commit. <strong>One logical effect:</strong> retries must not repeat an already committed effect.</p></div>
       <div><h3>Where the boundary moved</h3><p>v1/v2 assume atomic storage. The separate WAL now implements durable ledger effects under process crashes. The bridge runs four OS processes, while the model still controls delivery and expiry.</p></div>
-      <div><h3>What this isn't</h3><p>Milestones 1&ndash;5 are implemented, not production-ready. No power-loss proof, replicated authority, autonomous network cluster, or external exactly-once side effects. Multi-job scheduling remains future work.</p></div>
+      <div><h3>What this isn't</h3><p>Milestones 1&ndash;6 are implemented, not production-ready. No power-loss proof, replicated authority, autonomous network cluster, or external exactly-once side effects. Multi-job workloads use one serial worker and an in-memory queue.</p></div>
     </section>
-    <footer><span>FenceLab <span class="footer-divider">/</span> Failure investigation workbench</span><span>Real process boundaries. Displayed delivery times remain virtual.</span></footer>
+    <footer><span>FenceLab <span class="footer-divider">/</span> Failure investigation workbench</span><span>Virtual protocol time. Measured workload time. Never interchangeable.</span></footer>
   </main>
 </body>
 </html>

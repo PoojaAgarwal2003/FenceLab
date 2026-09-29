@@ -14,6 +14,7 @@ import (
 	"github.com/PoojaAgarwal2003/FenceLab/internal/bridge"
 	"github.com/PoojaAgarwal2003/FenceLab/internal/durable"
 	"github.com/PoojaAgarwal2003/FenceLab/internal/model"
+	"github.com/PoojaAgarwal2003/FenceLab/internal/scheduler"
 )
 
 func modelRequest(w http.ResponseWriter, r *http.Request, slots chan struct{}, logger *log.Logger) {
@@ -97,6 +98,12 @@ func checkArtifact(ctx context.Context, raw json.RawMessage) (any, error) {
 		return nil, err
 	}
 	switch header.Version {
+	case scheduler.Version:
+		var report scheduler.Report
+		if err := model.Decode(bytes.NewReader(raw), &report); err != nil {
+			return nil, err
+		}
+		return report, scheduler.Check(report)
 	case bridge.Version:
 		var report bridge.Report
 		if err := model.Decode(bytes.NewReader(raw), &report); err != nil {
