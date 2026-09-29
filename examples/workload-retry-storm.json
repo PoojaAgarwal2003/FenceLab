@@ -1,0 +1,12 @@
+{
+  "version": "fencelab/workload-v1",
+  "jobs": 64,
+  "capacity": 64,
+  "policy": "fair",
+  "max_attempts": 3,
+  "offer_every_ms": 0,
+  "service_ms": 1,
+  "fault_every": 4,
+  "fault": "lost-ack-always",
+  "reopen_after": 24
+}
