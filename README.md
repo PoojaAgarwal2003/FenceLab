@@ -13,13 +13,14 @@ same seeded failure schedule under three policies so you can inspect the
 difference at the write boundary.
 
 [Run locally](#run-locally) · [The experiment](#the-experiment) ·
-[Architecture](docs/architecture.md) · [Next milestones](docs/roadmap.md) ·
+[Architecture](docs/architecture.md) · [Milestones](docs/roadmap.md) ·
 [Recorded evidence](docs/evidence.md)
 
-**Milestones 1-5 are implemented:** ownership experiments, programmable faults,
-bounded exploration, crash-safe ledger recovery, and a four-process bridge.
-The models control delivery timing; this is not a production scheduler or an
-autonomously timed distributed cluster.
+**All six planned milestones are implemented:** ownership experiments,
+programmable faults, bounded exploration, process-crash ledger recovery,
+a four-process bridge, and measured multi-job scheduler workloads.
+The models control delivery timing; the separate workload runner measures
+actual elapsed time. This is not a production scheduler or an autonomous cluster.
 
 ![FenceLab's failure investigation workbench](docs/images/workbench-desktop.png)
 
@@ -182,7 +183,7 @@ go run ./cmd/fencelab recover -wal crash-lab/write-after-sync.wal
 ```
 
 Directories must be new; existing files are never overwritten. Import either
-JSON report into **"What survives the crash?"** in the dashboard. The server
+JSON report into **"Durability. Pressure. Evidence."** in the dashboard. The server
 rechecks the history against the model and the recovery invariants, but never
 launches processes or opens WAL paths from browser requests.
 
@@ -208,6 +209,36 @@ See [durability guarantees](docs/durable-recovery.md),
 See the [mobile process view](docs/images/process-mobile.png) and
 [crash-recovery matrix](docs/images/recovery-desktop.png).
 
+## Beyond one job: pressure, fairness, and honest completion
+
+```sh
+go run ./cmd/fencelab workload -file examples/workload-overload.json -dir workload-overload > workload-report.json
+```
+
+Import the report in the same dashboard inspector. One serial worker commits
+real keyed effects to a WAL. Bounded admission, 3:1 weighted-fair or strict-priority
+selection, FIFO retries, and explicit attempt budgets determine who gets served.
+The queue itself is in memory; global fencing protects the serial batch, not
+independent distributed job leases.
+
+The recorded overload burst offers **128 jobs into 16 slots**: 112 are explicitly
+rejected, 16 are acknowledged, and four lost acknowledgments are deduplicated.
+The retry storm is more revealing: **64 effects commit, but only 48 jobs are
+acknowledged; 16 exhaust their budgets**. Durable effect and successful completion
+are not the same thing.
+
+The dashboard shows job outcomes, actual dispatch order, measured throughput and
+completion percentiles, queue high water, and clean ledger reopen costs. Fairness
+is bounded in **dispatches**, not milliseconds. Timings are machine-specific
+observations, not claims about cluster capacity or production SLAs.
+
+![Measured retry exhaustion and durable effects](docs/images/workload-desktop.png)
+
+See the [mobile view](docs/images/workload-mobile.png),
+[scheduler design and measurement contract](docs/scheduler-workloads.md),
+[raw measured reports](docs/evidence.md#milestone-6---2026-09-29), and
+[strict-priority comparison](examples/workload-priority.json).
+
 ## Engineering underneath
 
 - **v1 discrete-event min-heap:** events are ordered by `(virtual time, insertion
@@ -231,6 +262,11 @@ See the [mobile process view](docs/images/process-mobile.png) and
   distinguish incomplete tails from corrupt complete records.
 - **Process-boundary response checking:** run independent durable actors behind
   the same delivery driver and compare their actual histories with the model.
+- **Bounded weighted-fair FIFOs:** retries retain admission slots and rejoin their
+  class's tail; selection is checked by replaying a compact admission/dispatch journal.
+- **Measured workload accounting:** real monotonic completion distributions,
+  declared offered load, explicit rejection/exhaustion, and separate durable-effect
+  counts prevent virtual timings or ambiguous outcomes from becoming success claims.
 
 The model avoids goroutine scheduling, sleeps, wall-clock reads, and global
 random state. The real HTTP interface has bounded admission, explicit overload
@@ -262,12 +298,13 @@ CI runs Go checks on Windows/Linux, race detection on Linux, and Chromium tests.
 The [contributor guide](CONTRIBUTING.md) defines the model's invariants and
 evidence expectations.
 
-## Where this goes next
+## Completion and scope
 
-**Milestones 1-5 of 6 are complete; the full advanced project is not finished.**
-The [roadmap](docs/roadmap.md) next adds multi-job scheduler workloads, bounded
-queues, fairness, retry budgets, and measured overload/recovery behavior.
-The current process bridge is intentionally controlled and local.
+**All 6 of 6 planned laboratory milestones are complete.** The
+[roadmap](docs/roadmap.md) records acceptance evidence and remaining boundaries.
+The process bridge remains controlled and local; the workload queue is not durable
+or replicated. Production readiness, public deployment, concurrent distributed
+workers, and external exactly-once effects are not claimed.
 
 ## Attribution and licensing
 

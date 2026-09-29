@@ -1,0 +1,1021 @@
+{
+  "version": "fencelab/workload-v1",
+  "config": {
+    "version": "fencelab/workload-v1",
+    "jobs": 64,
+    "capacity": 64,
+    "policy": "fair",
+    "max_attempts": 3,
+    "offer_every_ms": 0,
+    "service_ms": 1,
+    "fault_every": 0,
+    "fault": "none",
+    "reopen_after": 24
+  },
+  "environment": "windows/amd64 go1.27.1",
+  "elapsed_ns": 125653500,
+  "acknowledged_jobs_per_second": 509.3371851957964,
+  "counts": {
+    "admitted": 64,
+    "rejected": 0,
+    "completed": 64,
+    "exhausted": 0,
+    "attempts": 64,
+    "retries": 0,
+    "effects": 64,
+    "deduplicated": 0,
+    "failed_before": 0,
+    "lost_acks": 0,
+    "high_water": 64
+  },
+  "completion_latency": {
+    "p50_ns": 70622600,
+    "p95_ns": 120269600,
+    "p99_ns": 125653500,
+    "max_ns": 125653500
+  },
+  "initial_queue_wait": {
+    "p50_ns": 68471700,
+    "p95_ns": 118122800,
+    "p99_ns": 123484400,
+    "max_ns": 123484400
+  },
+  "class_max_wait_dispatches": [
+    62,
+    63
+  ],
+  "fair_wait_bound": 255,
+  "recovery": {
+    "performed": true,
+    "after_attempt": 24,
+    "records": 26,
+    "effects": 24,
+    "open_ns": 11392600,
+    "barrier_ns": 1605600,
+    "next_token": 2
+  },
+  "jobs": [
+    {
+      "key": "invoice-001",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 541600,
+      "done_ns": 2730200,
+      "status": "completed",
+      "max_wait_dispatches": 0,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-002",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 2730200,
+      "done_ns": 4900700,
+      "status": "completed",
+      "max_wait_dispatches": 1,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-003",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 4900700,
+      "done_ns": 7088800,
+      "status": "completed",
+      "max_wait_dispatches": 2,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-004",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 7088800,
+      "done_ns": 9250300,
+      "status": "completed",
+      "max_wait_dispatches": 3,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-005",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 9250300,
+      "done_ns": 11516000,
+      "status": "completed",
+      "max_wait_dispatches": 4,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-006",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 11516000,
+      "done_ns": 13688600,
+      "status": "completed",
+      "max_wait_dispatches": 5,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-007",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 13688600,
+      "done_ns": 15315900,
+      "status": "completed",
+      "max_wait_dispatches": 6,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-008",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 15315900,
+      "done_ns": 16916900,
+      "status": "completed",
+      "max_wait_dispatches": 7,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-009",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 16916900,
+      "done_ns": 18550300,
+      "status": "completed",
+      "max_wait_dispatches": 8,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-010",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 18550300,
+      "done_ns": 20160100,
+      "status": "completed",
+      "max_wait_dispatches": 9,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-011",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 20160100,
+      "done_ns": 22278700,
+      "status": "completed",
+      "max_wait_dispatches": 10,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-012",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 22278700,
+      "done_ns": 23915100,
+      "status": "completed",
+      "max_wait_dispatches": 11,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-013",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 23915100,
+      "done_ns": 25519900,
+      "status": "completed",
+      "max_wait_dispatches": 12,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-014",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 25519900,
+      "done_ns": 27169800,
+      "status": "completed",
+      "max_wait_dispatches": 13,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-015",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 27169800,
+      "done_ns": 28781200,
+      "status": "completed",
+      "max_wait_dispatches": 14,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-016",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 28781200,
+      "done_ns": 30388400,
+      "status": "completed",
+      "max_wait_dispatches": 15,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-017",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 30388400,
+      "done_ns": 31991200,
+      "status": "completed",
+      "max_wait_dispatches": 16,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-018",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 31991200,
+      "done_ns": 33605200,
+      "status": "completed",
+      "max_wait_dispatches": 17,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-019",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 33605200,
+      "done_ns": 35214900,
+      "status": "completed",
+      "max_wait_dispatches": 18,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-020",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 35214900,
+      "done_ns": 36820100,
+      "status": "completed",
+      "max_wait_dispatches": 19,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-021",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 36820100,
+      "done_ns": 38420900,
+      "status": "completed",
+      "max_wait_dispatches": 20,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-022",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 38420900,
+      "done_ns": 40022300,
+      "status": "completed",
+      "max_wait_dispatches": 21,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-023",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 0,
+      "first_ns": 40022300,
+      "done_ns": 41613600,
+      "status": "completed",
+      "max_wait_dispatches": 22,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-024",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 41613600,
+      "done_ns": 43218700,
+      "status": "completed",
+      "max_wait_dispatches": 23,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-025",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 56216900,
+      "done_ns": 58602700,
+      "status": "completed",
+      "max_wait_dispatches": 24,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-026",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 58602700,
+      "done_ns": 60309700,
+      "status": "completed",
+      "max_wait_dispatches": 25,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-027",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 60309700,
+      "done_ns": 61972400,
+      "status": "completed",
+      "max_wait_dispatches": 26,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-028",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 61972400,
+      "done_ns": 63629600,
+      "status": "completed",
+      "max_wait_dispatches": 27,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-029",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 63629600,
+      "done_ns": 65759100,
+      "status": "completed",
+      "max_wait_dispatches": 28,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-030",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 65759100,
+      "done_ns": 67405300,
+      "status": "completed",
+      "max_wait_dispatches": 29,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-031",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 67405300,
+      "done_ns": 69013300,
+      "status": "completed",
+      "max_wait_dispatches": 30,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-032",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 69013300,
+      "done_ns": 70622600,
+      "status": "completed",
+      "max_wait_dispatches": 31,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-033",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 70622600,
+      "done_ns": 72747600,
+      "status": "completed",
+      "max_wait_dispatches": 32,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-034",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 72747600,
+      "done_ns": 74442800,
+      "status": "completed",
+      "max_wait_dispatches": 33,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-035",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 74442800,
+      "done_ns": 76093600,
+      "status": "completed",
+      "max_wait_dispatches": 34,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-036",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 76093600,
+      "done_ns": 78225000,
+      "status": "completed",
+      "max_wait_dispatches": 35,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-037",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 78225000,
+      "done_ns": 79894500,
+      "status": "completed",
+      "max_wait_dispatches": 36,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-038",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 79894500,
+      "done_ns": 81507900,
+      "status": "completed",
+      "max_wait_dispatches": 37,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-039",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 81507900,
+      "done_ns": 83647300,
+      "status": "completed",
+      "max_wait_dispatches": 38,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-040",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 83647300,
+      "done_ns": 85280300,
+      "status": "completed",
+      "max_wait_dispatches": 39,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-041",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 85280300,
+      "done_ns": 86896500,
+      "status": "completed",
+      "max_wait_dispatches": 40,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-042",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 86896500,
+      "done_ns": 88656500,
+      "status": "completed",
+      "max_wait_dispatches": 41,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-043",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 88656500,
+      "done_ns": 90264600,
+      "status": "completed",
+      "max_wait_dispatches": 42,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-044",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 90264600,
+      "done_ns": 91873800,
+      "status": "completed",
+      "max_wait_dispatches": 43,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-045",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 91873800,
+      "done_ns": 93479200,
+      "status": "completed",
+      "max_wait_dispatches": 44,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-046",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 93479200,
+      "done_ns": 95092500,
+      "status": "completed",
+      "max_wait_dispatches": 45,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-047",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 95092500,
+      "done_ns": 96701700,
+      "status": "completed",
+      "max_wait_dispatches": 46,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-048",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 96701700,
+      "done_ns": 98811900,
+      "status": "completed",
+      "max_wait_dispatches": 47,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-049",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 98811900,
+      "done_ns": 100438900,
+      "status": "completed",
+      "max_wait_dispatches": 48,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-050",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 100438900,
+      "done_ns": 102037300,
+      "status": "completed",
+      "max_wait_dispatches": 49,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-051",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 102037300,
+      "done_ns": 103674400,
+      "status": "completed",
+      "max_wait_dispatches": 50,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-052",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 103674400,
+      "done_ns": 105790300,
+      "status": "completed",
+      "max_wait_dispatches": 51,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-053",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 105790300,
+      "done_ns": 107416400,
+      "status": "completed",
+      "max_wait_dispatches": 52,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-054",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 107416400,
+      "done_ns": 109018900,
+      "status": "completed",
+      "max_wait_dispatches": 53,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-055",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 109018900,
+      "done_ns": 110663700,
+      "status": "completed",
+      "max_wait_dispatches": 54,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-056",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 110663700,
+      "done_ns": 112264700,
+      "status": "completed",
+      "max_wait_dispatches": 55,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-057",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 112264700,
+      "done_ns": 113859500,
+      "status": "completed",
+      "max_wait_dispatches": 56,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-058",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 113859500,
+      "done_ns": 115457400,
+      "status": "completed",
+      "max_wait_dispatches": 57,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-059",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 115457400,
+      "done_ns": 117072200,
+      "status": "completed",
+      "max_wait_dispatches": 58,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-060",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 117072200,
+      "done_ns": 118664400,
+      "status": "completed",
+      "max_wait_dispatches": 59,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-061",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 118664400,
+      "done_ns": 120269600,
+      "status": "completed",
+      "max_wait_dispatches": 60,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-062",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 120269600,
+      "done_ns": 122376500,
+      "status": "completed",
+      "max_wait_dispatches": 61,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-063",
+      "class": 0,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 122376500,
+      "done_ns": 124026000,
+      "status": "completed",
+      "max_wait_dispatches": 62,
+      "outcomes": [
+        "ack"
+      ]
+    },
+    {
+      "key": "invoice-064",
+      "class": 1,
+      "offered_ns": 0,
+      "decided_ns": 541600,
+      "first_ns": 124026000,
+      "done_ns": 125653500,
+      "status": "completed",
+      "max_wait_dispatches": 63,
+      "outcomes": [
+        "ack"
+      ]
+    }
+  ],
+  "order": [
+    -1,
+    -2,
+    -3,
+    -4,
+    -5,
+    -6,
+    -7,
+    -8,
+    -9,
+    -10,
+    -11,
+    -12,
+    -13,
+    -14,
+    -15,
+    -16,
+    -17,
+    -18,
+    -19,
+    -20,
+    -21,
+    -22,
+    -23,
+    -24,
+    -25,
+    -26,
+    -27,
+    -28,
+    -29,
+    -30,
+    -31,
+    -32,
+    -33,
+    -34,
+    -35,
+    -36,
+    -37,
+    -38,
+    -39,
+    -40,
+    -41,
+    -42,
+    -43,
+    -44,
+    -45,
+    -46,
+    -47,
+    -48,
+    -49,
+    -50,
+    -51,
+    -52,
+    -53,
+    -54,
+    -55,
+    -56,
+    -57,
+    -58,
+    -59,
+    -60,
+    -61,
+    -62,
+    -63,
+    -64,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64
+  ]
+}

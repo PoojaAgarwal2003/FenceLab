@@ -16,6 +16,12 @@
 /bridge-retry/
 /crash-report.json
 /process-report.json
+/workload-overload/
+/workload-balanced/
+/workload-retry-storm/
+/workload-priority/
+/workload-report.json
+/workload-*-report.json
 .env
 .env.*
 !.env.example

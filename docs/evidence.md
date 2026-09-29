@@ -195,3 +195,76 @@ This is evidence of local **process-crash recovery and controlled protocol
 execution**, not power-loss durability, autonomous networking, external
 exactly-once effects, or a throughput benchmark. See the
 [WAL contract](durable-recovery.md) and [bridge scope](process-bridge.md).
+
+## Milestone 6 - 2026-09-29
+
+Recorded from the Windows executable built at `8783976`, using the four
+checked-in workload configs. Visible environment: Windows amd64, Go 1.27.1,
+Intel Xeon Platinum 8370C at 2.80 GHz (8 exposed cores / 16 logical processors).
+WALs were created in new local directories under the working checkout, in a
+OneDrive-managed folder. Storage/sync activity and host contention were not
+isolated. No cloud API or remote service was used by FenceLab.
+
+**One actual run per configuration, in the table's order; no warmup or repeated-run
+confidence interval.** These are short, machine-specific demonstrations, not
+comparative performance claims. Completion percentiles describe acknowledged jobs
+inside one batch; they are not percentiles across repeated benchmarks.
+
+| Declared workload | Admitted / rejected | Acknowledged / exhausted | Durable effects | Attempts / deduplications | Artifact |
+|---|---:|---:|---:|---:|---|
+| Fair no-fault control | 64 / 0 | 64 / 0 | 64 | 64 / 0 | [Balanced](evidence/workload-balanced.json) |
+| Overload + first lost acknowledgment | 16 / 112 | 16 / 0 | 16 | 20 / 4 | [Overload](evidence/workload-overload.json) |
+| Always-lost acknowledgment retry storm | 64 / 0 | 48 / 16 | 64 | 96 / 32 | [Retry storm](evidence/workload-retry-storm.json) |
+| Strict-priority no-fault control | 64 / 0 | 64 / 0 | 64 | 64 / 0 | [Priority](evidence/workload-priority.json) |
+
+| Workload | Batch elapsed (ms) | Acknowledged jobs/s | Completion p50 / p95 / p99 (ms) | Ledger open/replay (ms) | New epoch + fence (ms) |
+|---|---:|---:|---:|---:|---:|
+| Balanced | 125.654 | 509.337 | 70.623 / 120.270 / 125.654 | 11.393 | 1.606 |
+| Overload | 67.424 | 237.306 | 41.998 / 67.424 / 67.424 | 10.387 | 1.120 |
+| Retry storm | 155.484 | 308.713 | 59.971 / 113.181 / 117.078 | 2.031 | 1.091 |
+| Priority | 130.849 | 489.115 | 75.627 / 125.984 / 130.849 | 14.379 | 1.076 |
+
+The first ordinary job in the no-fault batch waits **3 other dispatches with fair
+selection versus 48 with strict priority**. Both finite batches drain. The
+continuous-high-arrival unit control demonstrates why that is not a starvation
+guarantee for strict priority. Fair selection's conservative `4C - 1` bound is
+per queued attempt, not an end-to-end or wall-clock guarantee.
+
+The retry storm's 16 exhausted jobs already have durable effects; reporting 64
+completed jobs would be wrong. The overload's outstanding high water is exactly
+16 including the active job and retry slots, not 128 silently buffered jobs.
+
+Reproduce with new directories:
+
+```sh
+go run ./cmd/fencelab workload -file examples/workload-balanced.json -dir workload-balanced
+go run ./cmd/fencelab workload -file examples/workload-overload.json -dir workload-overload
+go run ./cmd/fencelab workload -file examples/workload-retry-storm.json -dir workload-retry-storm
+go run ./cmd/fencelab workload -file examples/workload-priority.json -dir workload-priority
+```
+
+Validation on Windows passed the full Go tests, vet, binary build, and all
+**50 Chromium cases** (25 each desktop/mobile). New checks cover capacity during
+execution/retry, FIFO fairness, strict-priority starvation, attempt exhaustion,
+actual WAL deduplication and reopen, paced offers, cancellation, forged metrics,
+changed selection journals, and curated report/config agreement. The maximum
+128-job/five-attempt generated report remained below the 64 KiB import limit.
+Browser tests now serialize success requests against the intentionally
+single-slot model/artifact executor; overload/error behavior is tested explicitly.
+
+The rebuilt executable's v1 9,000-run sweep and both v2 eager/barrier search
+reports deep-compare identically with the preserved artifacts. A Linux amd64
+cross-build passed; **no new native Linux or race result is claimed** before CI.
+An isolated copy of the Windows executable ran the retry-storm workload and
+served the embedded dashboard/artifact API without a source checkout or runtime
+Go/Node dependency in its working directory. Its owned server was stopped.
+
+The [retry-storm desktop](images/workload-desktop.png) and
+[mobile](images/workload-mobile.png), plus [overload desktop](images/workload-overload-desktop.png)
+and [mobile](images/workload-overload-mobile.png), are direct browser captures of
+these curated reports from `tests/workloads.spec.mjs`. Earlier images are unchanged.
+
+These measurements include a **clean ledger close/reopen**, while the in-memory
+queue survives. They do not measure process-crash queue recovery, power-loss
+durability, external transactions, or an autonomous distributed scheduler.
+See the [measurement and scheduling contract](scheduler-workloads.md).

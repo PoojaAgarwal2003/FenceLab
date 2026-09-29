@@ -7,6 +7,9 @@ For milestone 4's actual ledger persistence and milestone 5's four-process
 execution, see [durable recovery](durable-recovery.md) and
 [the controlled process bridge](process-bridge.md). The browser can validate
 their imported reports without launching actors or opening arbitrary WAL paths.
+Milestone 6 is a separate [measured scheduler workload](scheduler-workloads.md):
+bounded FIFO admission/selection, serial durable effects, elapsed measurements,
+and a journal-validated artifact. Its clocks never enter either simulation.
 
 ## Two layers, one deterministic model
 

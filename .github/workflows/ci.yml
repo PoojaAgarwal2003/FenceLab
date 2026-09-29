@@ -50,6 +50,17 @@ jobs:
         run: |
           go run ./cmd/fencelab durability -dir crash-lab > crash-report.json
           go run ./cmd/fencelab bridge -replay docs/evidence/v2-counterexample.json -dir process-lab > process-report.json
+      - name: Declared measured scheduler workloads
+        shell: bash
+        run: |
+          for workload in balanced overload retry-storm priority; do
+            go run ./cmd/fencelab workload -file "examples/workload-$workload.json" -dir "workload-$workload" > "workload-$workload-report.json"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: measured-workloads-${{ matrix.os }}
+          path: workload-*-report.json
+          retention-days: 7
 
   browser:
     name: Chromium / desktop and mobile

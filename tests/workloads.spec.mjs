@@ -69,3 +69,31 @@ test("reject a changed selection journal and allow the same file to be retried",
   await expect(page.locator("#artifact-error")).toBeHidden();
   await expect(page.locator("#artifact-status")).toHaveText("ARTIFACT CONSISTENCY CHECKED");
 });
+
+test("inspect curated overload and ambiguous completion reports", async ({ page }, testInfo) => {
+  await page.goto("/");
+  await page.locator("#artifact-file").setInputFiles("docs/evidence/workload-overload.json");
+  await expect(page.locator("#artifact-summary")).toContainText("16 admitted / 112 rejected / 16 acknowledged");
+  await expect(page.locator("#artifact-rows tr")).toHaveCount(128);
+  await expect(page.locator("#workload-capacity")).toHaveText("16 / 16");
+  await expect(page.locator("#workload-outcomes")).toHaveAccessibleName("16 acknowledged, 0 exhausted, 112 rejected");
+  await page.locator("#workload-metrics").scrollIntoViewIfNeeded();
+  await page.locator(".artifact-lab").screenshot({ path: testInfo.outputPath("workload-overload.png") });
+  await page.locator("#artifact-file").setInputFiles("docs/evidence/workload-retry-storm.json");
+  await expect(page.locator("#artifact-summary")).toContainText("48 acknowledged / 16 exhausted. 64 durable effects; 32 deduplicated");
+  await expect(page.locator("#workload-dispatches span")).toHaveCount(96);
+  await expect(page.locator("#artifact-rows tr")).toHaveCount(64);
+  await page.locator("#workload-metrics").scrollIntoViewIfNeeded();
+  await page.locator(".artifact-lab").screenshot({ path: testInfo.outputPath("workload-retry-storm.png") });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("distinguish fair dispatch bounds from strict-priority starvation", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#artifact-file").setInputFiles("docs/evidence/workload-balanced.json");
+  await expect(page.locator("#workload-fairness")).toContainText("Weighted fair 3:1");
+  await expect(page.locator("#artifact-rows tr").nth(3).locator("td").nth(3)).toHaveText("3");
+  await page.locator("#artifact-file").setInputFiles("docs/evidence/workload-priority.json");
+  await expect(page.locator("#workload-fairness")).toContainText("No finite starvation bound");
+  await expect(page.locator("#artifact-rows tr").nth(3).locator("td").nth(3)).toHaveText("48");
+});

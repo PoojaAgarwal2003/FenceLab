@@ -3,7 +3,8 @@
 Each milestone should leave a runnable demonstration, replayable failure,
 explicit correctness boundary, and small meaningful commits. Milestones 1-3
 are local models; 4-5 add disk recovery and controlled real processes.
-Milestone 6 remains future scope.
+Milestone 6 adds bounded multi-job workloads with measured elapsed time.
+All six planned milestones are implemented within the boundaries below.
 
 | Milestone | Engineering work | Demonstration / acceptance |
 |---|---|---|
@@ -12,7 +13,7 @@ Milestone 6 remains future scope.
 | **3. Bounded model exploration - implemented** | BFS over enabled equal-time deliveries/timers; canonical state hashing; explicit bounds; shortest failure prefixes and JSON replay | 9-decision counterexample; deterministic replay and unmerged-oracle comparison; exhausted vs state/depth-limit outcomes; no general proof or fault-file minimization claim |
 | **4. Durable recovery - implemented** | Bounded append-only WAL, CRC32C framing, OS single-writer locks, sync-before-ack, epoch/fence/key recovery, poisoned writers | 15 real child-process kills around append/sync/apply; every torn-tail byte and corruption byte tested; local-ledger and power-loss limits documented |
 | **5. Real process bridge - implemented** | Separate authority, workers, and store over versioned private pipes; shared transport interface; seeded virtual fault proxy; independent actor responses | Exact 9-decision counterexample in four OS processes; barrier/lost-result histories match; authority/store forced restart; browser artifact consistency inspector |
-| 6. Scheduler workloads | Multiple jobs, bounded queues, priorities/fairness, retry budgets, overload; load and recovery measurements | Measured starvation bounds, completion distributions, rejected load, and recovery costs under declared workloads |
+| **6. Scheduler workloads - implemented** | Multiple keyed jobs, bounded outstanding admission, weighted fair/strict-priority dispatch, FIFO retries with budgets, declared faults and overload | Dispatch-count fairness bound and starvation control; measured completion distributions, rejected load and ledger reopen costs; replay-validated report inspector |
 
 ## Completed milestone 2-3 artifacts
 
@@ -31,13 +32,26 @@ exploring arbitrary delivery times are not implemented.
 report inspector. The bridge controls virtual delivery to real actors; autonomous
 network services and wall-clock fault timing are not implemented.
 
-## Next milestone: scheduler workloads
+## Completed milestone 6 artifacts
 
-1. Introduce multiple logical job/effect keys, bounded admission, and queue limits.
-2. Add fairness/priority policies with explicit starvation and retry budgets.
-3. Drive declared overload workloads and measure rejected work, completion
-   distributions, throughput, and recovery costs using actual elapsed time.
-4. Keep workload measurements separate from virtual model event timestamps.
+[Scheduler contracts](scheduler-workloads.md), four declared
+[workload configurations](../examples/workload-overload.json), CLI `workload`,
+four [measured reports](evidence.md#milestone-6---2026-09-29), and the browser's
+queue pressure, dispatch order, completion, and recovery views.
+
+The queue is in memory and the worker is serial. Capacity includes in-flight
+work. Weighted fair selection has a conservative per-attempt dispatch bound;
+strict priority intentionally has none under continuous high-priority arrivals.
+Completion distributions use actual elapsed time, not v1/v2 event timestamps.
+The recovery probe closes/reopens the effect ledger, not a durable queue.
+
+## Beyond the planned milestones
+
+Production release engineering, an independently durable queue, concurrent
+workers, replicated coordination, autonomous networking, and external effect
+transactions are separate design projects, not implied by completing this
+laboratory. Authentication, public hosting, and project license selection remain
+outside the implemented scope.
 
 ## Boundaries to keep
 

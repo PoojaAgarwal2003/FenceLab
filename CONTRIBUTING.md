@@ -30,6 +30,14 @@ development dependencies. Follow the [README](README.md#development).
   must reserve a fresh epoch and establish the required barrier before activation.
 - Imported artifacts prove internal consistency, not trusted provenance. The
   web API must not launch processes or accept filesystem paths to inspect.
+- Keep `internal/scheduler/queue.go` clock-free and single-dispatcher. Capacity
+  includes active jobs; retries retain their slots and move to the class FIFO tail.
+- Keep workload offered deadlines, actual admission, acknowledgment, and durable
+  effects distinct. Report exhausted lost-ack jobs even if their effects survived.
+- Validate workload selection/counters from the journal and compare generated
+  counts to actual WAL responses. Never label virtual time as benchmark latency.
+- A workload's clean ledger reopen keeps the queue in memory; it is not a
+  forced-process crash, persistent queue, or wall-clock fairness guarantee.
 
 ## Before a commit
 
@@ -49,6 +57,10 @@ probes, and runs real-process bridge scenarios. It owns and waits for each PID.
 Native WAL file locking supports Windows and Linux; cross-compilation does not
 replace native lock/recovery or race testing. Curated reports under
 `docs/evidence/` are checked by the artifact API tests.
+
+Browser success-path tests share a single bounded model/artifact executor and run
+with one Playwright worker. Explicit overload tests still assert 429 behavior;
+do not mask admission failures with automatic success-shaped retries.
 
 Use small commits tied to a real behavior, check, or documentation change.
 Keep benchmark and model claims tied to reproducible evidence. Preserve

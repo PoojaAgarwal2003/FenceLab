@@ -3,6 +3,28 @@
 Milestone 6 adds a separate single-dispatcher experiment. It does not change v1
 or v2 timing, the two-attempt protocol, or the four-process bridge.
 
+```text
+Declared offer deadlines (real elapsed clock)
+                  |
+          Bounded admission ----> explicit rejection
+                  |
+         high FIFO / ordinary FIFO
+                  |
+       3:1 weighted fair or strict priority
+                  |
+         One nonpreemptive worker <----- budgeted FIFO retry
+                  |                               ^
+        service delay / injected fault -----------+
+                  |
+      fenced + idempotent synchronous WAL
+                  |
+   acknowledgment vs exhaustion vs durable effect
+                  |
+       measured report + replayable journal
+                  |
+    browser consistency check (no execution)
+```
+
 ## Admission and selection
 
 Jobs have a stable UTF-8 effect key and one of two classes: high priority (0) or
@@ -82,3 +104,31 @@ an unsigned artifact cannot prove that its elapsed timestamps were measured.
 Maximum size stays within the inspector's 64 KiB limit, even at 128 jobs and
 five attempts. There is no queue persistence, concurrent worker pool, replicated
 metadata, external side effect, compaction, or production latency SLA.
+
+## Reproduce the declared experiments
+
+| Config under `examples/` | Offers / capacity | Purpose |
+|---|---:|---|
+| `workload-balanced.json` | 64 / 64 | Fair 3:1 no-fault control, 1 ms declared service |
+| `workload-priority.json` | 64 / 64 | Same batch with strict-priority selection |
+| `workload-overload.json` | 128 / 16 | Explicit admission rejection; every fourth offered key loses its first acknowledgment; 2 ms service |
+| `workload-retry-storm.json` | 64 / 64 | Every fourth key always loses acknowledgments; three attempts; exhaustion with durable effects |
+
+All four offer a burst at time zero. Reopen occurs after attempt 24 (8 in the
+overload case). For paced load, copy a config and set `offer_every_ms` to 1-10;
+admission then depends on measured service and disk time, not a deterministic
+performance prediction. Changing offered load, capacity, class mix, or service
+cost changes the experiment.
+
+Run each with a fresh directory and retain its JSON, config, platform, Go version,
+hardware, filesystem context, and workload parameters. The checked-in
+[single-sample evidence](evidence.md#milestone-6---2026-09-29) is an illustration,
+not a statistically defensible policy speed comparison. Quantiles are per-job
+within a run. Repeated runs, warmup, and controlled storage would be necessary for
+performance claims.
+
+The CLI returns 0 for a fully accounted experiment even if overload or injected
+faults cause rejection/exhaustion, 1 for execution/storage/report-output failure,
+and 2 for invalid flags/config. Treat `counts.completed`, `counts.exhausted`, and
+`counts.rejected` as outcomes; exit 0 does not mean every offered job succeeded.
+Local runs require no external service, API key, container, or subscription.
