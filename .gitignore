@@ -22,6 +22,9 @@
 /workload-priority/
 /workload-report.json
 /workload-*-report.json
+/pki/
+/cluster-data/
+/deploy/pki/
 .env
 .env.*
 !.env.example

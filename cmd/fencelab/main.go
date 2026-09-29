@@ -9,12 +9,13 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/PoojaAgarwal2003/FenceLab/internal/sim"
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	os.Exit(run(ctx, os.Args[1:], os.Stdout, os.Stderr))
 }
@@ -26,9 +27,16 @@ func run(ctx context.Context, args []string, out, errOut io.Writer) int {
 			fmt.Fprintln(errOut, err)
 			return 1
 		}
+		if _, err := fmt.Fprintln(out, "\nReplicated execution (separate from the labs):\n  cluster-pki     Generate local API/Raft bootstrap credentials\n  cluster-node    Run one persistent voter and its mTLS API\n  cluster-client  Submit jobs, query results, or probe readiness\n  cluster-worker Run a certificate-identified remote worker"); err != nil {
+			fmt.Fprintln(errOut, err)
+			return 1
+		}
 		return 0
 	}
 	command := args[0]
+	if command == "cluster-pki" || command == "cluster-node" || command == "cluster-client" || command == "cluster-worker" {
+		return clusterCommand(ctx, command, args[1:], out, errOut)
+	}
 	if command == "workload" {
 		return workloadCommand(ctx, args[1:], out, errOut)
 	}

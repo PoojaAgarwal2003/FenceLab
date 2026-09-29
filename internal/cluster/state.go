@@ -67,6 +67,7 @@ type State struct {
 	Cursor   int                    `json:"cursor"`
 	Jobs     map[string]Job         `json:"jobs"`
 	Workers  map[string]ClaimRecord `json:"workers"`
+	Receipts map[string]ClaimRecord `json:"receipts"`
 }
 
 type Command struct {
@@ -102,7 +103,7 @@ type FSM struct {
 }
 
 func NewFSM() *FSM {
-	return &FSM{state: State{Version: Version, Jobs: map[string]Job{}, Workers: map[string]ClaimRecord{}}}
+	return &FSM{state: State{Version: Version, Jobs: map[string]Job{}, Workers: map[string]ClaimRecord{}, Receipts: map[string]ClaimRecord{}}}
 }
 
 func bad(message string) Reply { return Reply{Status: "invalid", Error: message} }
@@ -158,11 +159,11 @@ func (f *FSM) apply(c Command) Reply {
 		f.state.Jobs[job.Key] = job
 		return Reply{Status: "enqueued", Job: &job, Counts: f.counts()}
 	case "claim":
-		previous, known := f.state.Workers[c.Worker]
+		_, known := f.state.Workers[c.Worker]
 		if !known && len(f.state.Workers) >= MaxWorkers {
 			return Reply{Status: "full", Error: "worker identity limit reached"}
 		}
-		if known && previous.Request == c.Request {
+		if previous, found := f.state.Receipts[c.Worker+":"+c.Request]; found {
 			job := f.state.Jobs[previous.Key]
 			if job.Status == "leased" && job.Worker == c.Worker && job.Generation == previous.Generation {
 				return Reply{Status: "claimed", Job: &job, Counts: f.counts()}
@@ -197,6 +198,7 @@ func (f *FSM) apply(c Command) Reply {
 			job.DeadlineMS = f.state.ClockMS + int64(c.LeaseMS)
 			f.state.Jobs[key] = job
 			f.state.Workers[c.Worker] = ClaimRecord{Request: c.Request, Key: key, Generation: job.Generation}
+			f.state.Receipts[c.Worker+":"+c.Request] = f.state.Workers[c.Worker]
 			return Reply{Status: "claimed", Job: &job, Counts: f.counts()}
 		}
 		return Reply{Status: "empty", Counts: f.counts()}
@@ -303,10 +305,11 @@ func (s *snapshot) Release() {}
 func (f *FSM) Restore(reader io.ReadCloser) (err error) {
 	defer func() { err = errors.Join(err, reader.Close()) }()
 	var state State
-	if err := decode(reader, &state, 16<<20); err != nil {
+	if err := decode(reader, &state, 32<<20); err != nil {
 		return err
 	}
-	if state.Version != Version || state.Jobs == nil || state.Workers == nil || len(state.Jobs) > MaxJobs ||
+	if state.Version != Version || state.Jobs == nil || state.Workers == nil || state.Receipts == nil ||
+		len(state.Receipts) > MaxJobs*5 || len(state.Jobs) > MaxJobs ||
 		len(state.Workers) > MaxWorkers || state.Cursor < 0 || state.Cursor > 3 || state.ClockMS < 0 ||
 		state.ClockMS > 9007199254740991-60000 || state.Sequence > MaxJobs*5 {
 		return fmt.Errorf("invalid queue snapshot header")
@@ -351,6 +354,20 @@ func (f *FSM) Restore(reader io.ReadCloser) (err error) {
 		if !identifier.MatchString(worker) || !identifier.MatchString(claim.Request) || !found ||
 			claim.Generation < 1 || claim.Generation > job.Generation {
 			return fmt.Errorf("invalid worker claim")
+		}
+		if receipt, found := state.Receipts[worker+":"+claim.Request]; !found || receipt != claim {
+			return fmt.Errorf("missing durable claim receipt")
+		}
+	}
+	for key, claim := range state.Receipts {
+		job, found := state.Jobs[claim.Key]
+		parts := bytes.SplitN([]byte(key), []byte(":"), 2)
+		if len(parts) != 2 || !identifier.Match(parts[0]) || string(parts[1]) != claim.Request ||
+			!identifier.MatchString(claim.Request) || !found || claim.Generation < 1 || claim.Generation > job.Generation {
+			return fmt.Errorf("invalid historical claim receipt")
+		}
+		if _, found := state.Workers[string(parts[0])]; !found {
+			return fmt.Errorf("receipt has no worker identity")
 		}
 	}
 	candidate := &FSM{state: state}

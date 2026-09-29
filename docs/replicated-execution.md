@@ -68,3 +68,74 @@ from API clients. Neither HTTP workers nor the browser can speak unauthenticated
 Raft. The storage assumes reliable local filesystems and non-Byzantine voters;
 hardware power-loss guarantees, corrupted-majority repair, membership changes,
 cross-region tuning, and production SLO certification are not supplied.
+
+## Remote execution and API authorization
+
+Milestone 8 adds actual HTTPS worker processes, not the controlled virtual-time
+bridge. Each API connection requires a verified client certificate. The leaf's
+signed organizational-unit role is `admin` or `worker`. Admins submit/query jobs;
+workers claim/complete only as their certificate common name. A worker cannot
+claim another identity, enqueue work, or use its API certificate on Raft.
+
+Clients retry only their configured HTTPS endpoints and never follow redirects.
+Keys and successful claim request IDs remain in the replicated state, including
+historical receipts, so even a late duplicate from an older request cannot
+consume new work. Unknown/duplicate JSON fields, body overflow, browser-origin
+requests, and role mismatches fail explicitly. Each node admits at most 16 API
+operations concurrently and returns 429 when busy. File/network failures are
+not converted to acknowledged results.
+
+TLS 1.3 is mandatory. Bootstrap PKI creates two independent issuers, three node
+identities, two worker identities, and one admin identity. Certificates expire
+after 90 days and cover `node1`/`node2`/`node3`, `localhost`, and `127.0.0.1`.
+These are local bootstrap credentials; use an organization-managed PKI with the
+correct host SANs for real hosts. Keep issuer private keys offline. On Windows,
+restrict the directory ACL yourself; POSIX mode 0600 is not a Windows ACL.
+
+Build once:
+
+```powershell
+go build -o bin/fencelab.exe ./cmd/fencelab
+.\bin\fencelab.exe cluster-pki -dir pki
+$peers = "node1=127.0.0.1:7001,node2=127.0.0.1:7002,node3=127.0.0.1:7003"
+```
+
+Start each node in a separate terminal, from the repository:
+
+```powershell
+.\bin\fencelab.exe cluster-node -id node1 -dir cluster-data/node1 -credentials pki/node1 -raft-listen 127.0.0.1:7001 -api-listen 127.0.0.1:8101 -peers $peers -bootstrap
+.\bin\fencelab.exe cluster-node -id node2 -dir cluster-data/node2 -credentials pki/node2 -raft-listen 127.0.0.1:7002 -api-listen 127.0.0.1:8102 -peers $peers
+.\bin\fencelab.exe cluster-node -id node3 -dir cluster-data/node3 -credentials pki/node3 -raft-listen 127.0.0.1:7003 -api-listen 127.0.0.1:8103 -peers $peers
+```
+
+Set `$peers` in each terminal; variables do not propagate between shells.
+Use a separate data directory for every voter. Linux uses the same flags with
+`bin/fencelab` instead of the `.exe` path.
+
+In two further terminals, start workers with distinct credentials:
+
+```powershell
+$endpoints = "https://127.0.0.1:8101,https://127.0.0.1:8102,https://127.0.0.1:8103"
+.\bin\fencelab.exe cluster-worker -credentials pki/worker1 -endpoints $endpoints
+.\bin\fencelab.exe cluster-worker -credentials pki/worker2 -endpoints $endpoints
+```
+
+Then submit, retry the same submission, and query the result:
+
+```powershell
+.\bin\fencelab.exe cluster-client -credentials pki/admin -endpoints $endpoints -operation enqueue -file examples/cluster-job.json
+.\bin\fencelab.exe cluster-client -credentials pki/admin -endpoints $endpoints -operation status -key invoice-2026-001
+```
+
+Set `$endpoints` in every terminal that uses it. Workers emit JSON event lines;
+nodes emit operational logs on stderr. Worker computation is the declared delay
+followed by SHA-256, never an arbitrary executable. Leases default to 5 seconds;
+there is no renewal yet, so choose a lease longer than the job plus network margin.
+A killed worker's lease expires and its job is reclaimable until its attempt
+budget is exhausted. A timed-out response is ambiguous; retry the same key.
+
+`/health/live` means the API process responds; `/health/ready` requires current
+quorum-confirmed leadership. Followers may be alive but not writable. Both need
+mTLS. SIGINT/SIGTERM closes HTTP and Raft gracefully; process-kill recovery is
+tested separately. The original `serve` dashboard remains loopback-only and
+does not submit commands into this cluster.

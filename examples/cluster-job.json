@@ -1,0 +1,7 @@
+{
+  "key": "invoice-2026-001",
+  "payload": "A reproducible remote computation with a durable result.",
+  "class": 1,
+  "work_ms": 500,
+  "max_attempts": 3
+}
