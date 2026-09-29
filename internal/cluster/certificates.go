@@ -100,14 +100,14 @@ func GeneratePKI(directory string) error {
 			}
 		}
 	}
-	for _, name := range []string{"admin", "worker1", "worker2"} {
+	for _, name := range []string{"admin", "worker1", "worker2", "probe"} {
 		dir := filepath.Join(directory, name)
 		if err := os.Mkdir(dir, 0700); err != nil {
 			return err
 		}
 		role := "worker"
-		if name == "admin" {
-			role = "admin"
+		if name == "admin" || name == "probe" {
+			role = name
 		}
 		template := &x509.Certificate{Subject: pkix.Name{CommonName: name, OrganizationalUnit: []string{role}}, KeyUsage: x509.KeyUsageDigitalSignature, ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}
 		if _, _, err := certificate(dir, "client", template, apiCA, apiKey); err != nil {

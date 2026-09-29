@@ -25,6 +25,7 @@
 /pki/
 /cluster-data/
 /deploy/pki/
+/deploy/.env
 .env
 .env.*
 !.env.example

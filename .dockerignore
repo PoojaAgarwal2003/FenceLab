@@ -1,0 +1,10 @@
+.git
+node_modules
+bin
+deploy/pki
+deploy/.env
+pki
+cluster-data
+**/*.key
+web-test-results
+playwright-report

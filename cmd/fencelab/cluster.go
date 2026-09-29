@@ -66,7 +66,7 @@ func clusterCommand(ctx context.Context, command string, args []string, out, err
 		if err := cluster.GeneratePKI(directory); err != nil {
 			return fail(err)
 		}
-		if _, err := fmt.Fprintln(out, "Created separate API/Raft issuers and node1-node3, admin, worker1-worker2 credentials. Keep issuer keys offline; never commit credentials."); err != nil {
+		if _, err := fmt.Fprintln(out, "Created separate API/Raft issuers and node1-node3, admin, worker1-worker2 and probe credentials. Keep issuer keys offline; never commit credentials."); err != nil {
 			return fail(err)
 		}
 		return 0

@@ -1,0 +1,120 @@
+{
+  "name": "fencelab",
+  "services": {
+    "node1": {
+      "image": "fencelab:local",
+      "build": { "context": "..", "args": { "RUN_UID": "${FENCELAB_UID:-65532}", "RUN_GID": "${FENCELAB_GID:-65532}" } },
+      "command": ["cluster-node", "-id", "node1", "-dir", "/data", "-credentials", "/credentials", "-raft-listen", "0.0.0.0:7000", "-api-listen", "0.0.0.0:8100", "-peers", "node1=node1:7000,node2=node2:7000,node3=node3:7000", "-bootstrap"],
+      "volumes": [
+        { "type": "volume", "source": "node1-data", "target": "/data" },
+        { "type": "bind", "source": "./pki/node1", "target": "/credentials", "read_only": true, "bind": { "create_host_path": false } },
+        { "type": "bind", "source": "./pki/probe", "target": "/probe", "read_only": true, "bind": { "create_host_path": false } }
+      ],
+      "ports": ["127.0.0.1:8101:8100"],
+      "networks": ["consensus", "api"],
+      "healthcheck": { "test": ["CMD", "/fencelab", "cluster-client", "-credentials", "/probe", "-endpoints", "https://localhost:8100", "-operation", "health"], "interval": "10s", "timeout": "5s", "retries": 3, "start_period": "10s" },
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "pids_limit": 128,
+      "mem_limit": "256m",
+      "cpus": 1,
+      "restart": "unless-stopped",
+      "stop_grace_period": "15s",
+      "logging": { "driver": "json-file", "options": { "max-size": "10m", "max-file": "3" } }
+    },
+    "node2": {
+      "image": "fencelab:local",
+      "command": ["cluster-node", "-id", "node2", "-dir", "/data", "-credentials", "/credentials", "-raft-listen", "0.0.0.0:7000", "-api-listen", "0.0.0.0:8100", "-peers", "node1=node1:7000,node2=node2:7000,node3=node3:7000"],
+      "volumes": [
+        { "type": "volume", "source": "node2-data", "target": "/data" },
+        { "type": "bind", "source": "./pki/node2", "target": "/credentials", "read_only": true, "bind": { "create_host_path": false } },
+        { "type": "bind", "source": "./pki/probe", "target": "/probe", "read_only": true, "bind": { "create_host_path": false } }
+      ],
+      "ports": ["127.0.0.1:8102:8100"],
+      "networks": ["consensus", "api"],
+      "healthcheck": { "test": ["CMD", "/fencelab", "cluster-client", "-credentials", "/probe", "-endpoints", "https://localhost:8100", "-operation", "health"], "interval": "10s", "timeout": "5s", "retries": 3, "start_period": "10s" },
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "pids_limit": 128,
+      "mem_limit": "256m",
+      "cpus": 1,
+      "restart": "unless-stopped",
+      "stop_grace_period": "15s",
+      "logging": { "driver": "json-file", "options": { "max-size": "10m", "max-file": "3" } }
+    },
+    "node3": {
+      "image": "fencelab:local",
+      "command": ["cluster-node", "-id", "node3", "-dir", "/data", "-credentials", "/credentials", "-raft-listen", "0.0.0.0:7000", "-api-listen", "0.0.0.0:8100", "-peers", "node1=node1:7000,node2=node2:7000,node3=node3:7000"],
+      "volumes": [
+        { "type": "volume", "source": "node3-data", "target": "/data" },
+        { "type": "bind", "source": "./pki/node3", "target": "/credentials", "read_only": true, "bind": { "create_host_path": false } },
+        { "type": "bind", "source": "./pki/probe", "target": "/probe", "read_only": true, "bind": { "create_host_path": false } }
+      ],
+      "ports": ["127.0.0.1:8103:8100"],
+      "networks": ["consensus", "api"],
+      "healthcheck": { "test": ["CMD", "/fencelab", "cluster-client", "-credentials", "/probe", "-endpoints", "https://localhost:8100", "-operation", "health"], "interval": "10s", "timeout": "5s", "retries": 3, "start_period": "10s" },
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "pids_limit": 128,
+      "mem_limit": "256m",
+      "cpus": 1,
+      "restart": "unless-stopped",
+      "stop_grace_period": "15s",
+      "logging": { "driver": "json-file", "options": { "max-size": "10m", "max-file": "3" } }
+    },
+    "worker1": {
+      "image": "fencelab:local",
+      "command": ["cluster-worker", "-credentials", "/credentials", "-endpoints", "https://node1:8100,https://node2:8100,https://node3:8100", "-lease-ms", "5000"],
+      "volumes": [{ "type": "bind", "source": "./pki/worker1", "target": "/credentials", "read_only": true, "bind": { "create_host_path": false } }],
+      "networks": ["api"],
+      "depends_on": { "node1": { "condition": "service_healthy" }, "node2": { "condition": "service_healthy" }, "node3": { "condition": "service_healthy" } },
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "pids_limit": 64,
+      "mem_limit": "64m",
+      "cpus": 0.5,
+      "restart": "unless-stopped",
+      "stop_grace_period": "10s",
+      "logging": { "driver": "json-file", "options": { "max-size": "10m", "max-file": "3" } }
+    },
+    "worker2": {
+      "image": "fencelab:local",
+      "command": ["cluster-worker", "-credentials", "/credentials", "-endpoints", "https://node1:8100,https://node2:8100,https://node3:8100", "-lease-ms", "5000"],
+      "volumes": [{ "type": "bind", "source": "./pki/worker2", "target": "/credentials", "read_only": true, "bind": { "create_host_path": false } }],
+      "networks": ["api"],
+      "depends_on": { "node1": { "condition": "service_healthy" }, "node2": { "condition": "service_healthy" }, "node3": { "condition": "service_healthy" } },
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "pids_limit": 64,
+      "mem_limit": "64m",
+      "cpus": 0.5,
+      "restart": "unless-stopped",
+      "stop_grace_period": "10s",
+      "logging": { "driver": "json-file", "options": { "max-size": "10m", "max-file": "3" } }
+    },
+    "admin": {
+      "image": "fencelab:local",
+      "profiles": ["tools"],
+      "command": ["cluster-client", "-credentials", "/credentials", "-endpoints", "https://node1:8100,https://node2:8100,https://node3:8100", "-operation", "status"],
+      "volumes": [
+        { "type": "bind", "source": "./pki/admin", "target": "/credentials", "read_only": true, "bind": { "create_host_path": false } },
+        { "type": "bind", "source": "../examples/cluster-job.json", "target": "/job.json", "read_only": true, "bind": { "create_host_path": false } }
+      ],
+      "networks": ["api"],
+      "read_only": true,
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "pids_limit": 64,
+      "mem_limit": "64m",
+      "cpus": 0.5,
+      "restart": "no"
+    }
+  },
+  "networks": { "consensus": { "internal": true }, "api": { "internal": true } },
+  "volumes": { "node1-data": {}, "node2-data": {}, "node3-data": {} }
+}

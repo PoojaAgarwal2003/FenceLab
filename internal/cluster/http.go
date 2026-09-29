@@ -35,7 +35,8 @@ func Handler(node *Node, logger *log.Logger) http.Handler {
 		cert := r.TLS.PeerCertificates[0]
 		admin := slices.Contains(cert.Subject.OrganizationalUnit, "admin")
 		worker := slices.Contains(cert.Subject.OrganizationalUnit, "worker")
-		if !admin && !worker {
+		probe := slices.Contains(cert.Subject.OrganizationalUnit, "probe")
+		if !admin && !worker && !probe {
 			write(http.StatusForbidden, bad("certificate has no API role"))
 			return
 		}
